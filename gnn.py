@@ -14,28 +14,25 @@ class gnn(torch.nn.Module):
         d_FC_layer = args.d_FC_layer
         self.dropout_rate = args.dropout_rate
         self.branch = args.branch
-        cal_nhop = None
 
         if args.tatic == "static":
-
-            def cal_nhop(x):
-                return args.nhop
+            def cal_nhop(x): return args.nhop
 
         elif args.tatic == "cont":
-
-            def cal_nhop(x):
-                return x + 1
+            def cal_nhop(x): return x + 1
 
         elif args.tatic == "jump":
+            def cal_nhop(x): return 2 * x + 1
 
-            def cal_nhop(x):
-                return 2 * x + 1
+        else:
+            raise ValueError("Unknown multi-hop tatic: {}".format(args.tatic))
 
         self.layers1 = [d_graph_layer for i in range(n_graph_layer + 1)]
         self.gconv1 = nn.ModuleList(
             [
                 GAT_gate(
-                    self.layers1[i], self.layers1[i + 1], cal_nhop(i), args.ngpu > 0
+                    self.layers1[i], self.layers1[i +
+                                                  1], cal_nhop(i), args.ngpu > 0
                 )
                 for i in range(len(self.layers1) - 1)
             ]
@@ -52,7 +49,8 @@ class gnn(torch.nn.Module):
             ]
         )
 
-        self.embede = nn.Linear(2 * args.embedding_dim, d_graph_layer, bias=False)
+        self.embede = nn.Linear(2 * args.embedding_dim,
+                                d_graph_layer, bias=False)
         self.theta = torch.tensor(args.al_scale)
         self.zeros = torch.zeros(1)
         if args.ngpu > 0:
@@ -95,7 +93,8 @@ class gnn(torch.nn.Module):
         for k in range(len(self.FC)):
             if k < len(self.FC) - 1:
                 c_hs = self.FC[k](c_hs)
-                c_hs = F.dropout(c_hs, p=self.dropout_rate, training=self.training)
+                c_hs = F.dropout(c_hs, p=self.dropout_rate,
+                                 training=self.training)
                 c_hs = F.relu(c_hs)
             else:
                 c_hs = self.FC[k](c_hs)
