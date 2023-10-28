@@ -53,7 +53,8 @@ if __name__ == "__main__":
     }
     for dataset in ["COX2", "DBLP-v1", "DHFR", "KKI", "MSRC-21"]:
         # Find the runtime file starting with the dataset name
-        files = [file for file in list_runtime_files if file.startswith(dataset)]
+        files = [
+            file for file in list_runtime_files if file.startswith(dataset)]
         files.sort(key=lambda x: x.split("-")[-1], reverse=True)
         num_subplots = len(files)
         # Delete the runtime file starting with the dataset name
@@ -78,7 +79,8 @@ if __name__ == "__main__":
                     # Check runtime is nan or not
                     if np.isnan(df[setting][i]):
                         runtime_df["settings"][-1] = (
-                            runtime_df["settings"][-1][:-4] + "|V_{\mathcal{T}}|]$"
+                            runtime_df["settings"][-1][:-4] +
+                            "|V_{\mathcal{T}}|]$"
                         )
 
                     runtime_df["settings"].append(setting_map[setting])
@@ -89,7 +91,8 @@ if __name__ == "__main__":
 
         # Draw line plot
         # Header: algo, <20, 20-40, 40-60, >60
-        fig, axes = plt.subplots(figsize=(6 * num_subplots, 3), ncols=num_subplots)
+        fig, axes = plt.subplots(
+            figsize=(6 * num_subplots, 3), ncols=num_subplots)
 
         if len(list_df) == 1:
             axes = [axes]
@@ -151,6 +154,7 @@ if __name__ == "__main__":
 
     performance_df = pd.DataFrame(performance_df)
 
+    # 1x4 plot
     fig, axes = plt.subplots(figsize=(5 * 4, 4), ncols=4)
     for idx, metric in enumerate(["ROC AUC", "PR AUC", "F1 score", "Accuracy"]):
         sns.barplot(
@@ -162,18 +166,44 @@ if __name__ == "__main__":
         axes[idx].set_xlabel("")
         axes[idx].set_ylim(0.5, 1)
         axes[idx].get_legend().set_visible(False)
-
     handles, labels = axes[0].get_legend_handles_labels()
+
     fig.legend(
         handles,
         labels,
         loc="lower center",
-        bbox_to_anchor=(0.5, -0.15),
+        bbox_to_anchor=(0.5, 1),
         ncol=2,
         fontsize=14,
     )
     fig.tight_layout()
-    fig.savefig(os.path.join(performance_folder, "performance.pdf"))
+    fig.savefig(os.path.join(performance_folder, "performance_1x4.pdf"))
+
+    # 2x2 plot
+    fig, axes = plt.subplots(figsize=(5 * 2, 4 * 2), ncols=2, nrows=2)
+    for idx, metric in enumerate(["ROC AUC", "PR AUC", "F1 score", "Accuracy"]):
+        sns.barplot(
+            data=performance_df, x="dataset", y=metric, hue="algo", ax=axes[idx//2][idx % 2]
+        )
+        axes[idx//2][idx %
+                     2].tick_params(axis="both", which="major", labelsize=14)
+        axes[idx//2][idx % 2].tick_params(axis="x", rotation=45)
+        axes[idx//2][idx % 2].set_ylabel(metric, fontsize=14)
+        axes[idx//2][idx % 2].set_xlabel("")
+        axes[idx//2][idx % 2].set_ylim(0.5, 1)
+        axes[idx//2][idx % 2].get_legend().set_visible(False)
+    handles, labels = axes[0][0].get_legend_handles_labels()
+
+    fig.legend(
+        handles,
+        labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 1),
+        ncol=2,
+        fontsize=14,
+    )
+    fig.tight_layout()
+    fig.savefig(os.path.join(performance_folder, "performance_2x2.pdf"))
 
     ##############################################################################
     # Load degradation results
@@ -207,6 +237,7 @@ if __name__ == "__main__":
 
     degradation_df = pd.DataFrame(degradation_df)
 
+    # 2x2 plot
     fig, axes = plt.subplots(figsize=(5 * 2, 3 * 2), ncols=2, nrows=2)
     for idx, metric in enumerate(["ROC AUC", "PR AUC", "F1 score", "Accuracy"]):
         row_idx = idx // 2
@@ -219,13 +250,14 @@ if __name__ == "__main__":
             ax=axes[row_idx][col_idx],
             marker="o",
         )
-        axes[row_idx][col_idx].tick_params(axis="both", which="major", labelsize=14)
+        axes[row_idx][col_idx].tick_params(
+            axis="both", which="major", labelsize=14)
         axes[row_idx][col_idx].set_xlabel("Threshold", fontsize=14)
         axes[row_idx][col_idx].set_ylabel(metric, fontsize=14)
         axes[row_idx][col_idx].set_ylim(0.5, 1)
         axes[row_idx][col_idx].get_legend().set_visible(False)
-
     handles, labels = axes[0][0].get_legend_handles_labels()
+
     fig.legend(
         handles,
         labels,
@@ -235,4 +267,33 @@ if __name__ == "__main__":
         fontsize=14,
     )
     fig.tight_layout()
-    fig.savefig(os.path.join(degradation_folder, "degradation.pdf"))
+    fig.savefig(os.path.join(degradation_folder, "degradation_2x2.pdf"))
+
+    # 1x4 plot
+    fig, axes = plt.subplots(figsize=(5 * 4, 3), ncols=4)
+    for idx, metric in enumerate(["ROC AUC", "PR AUC", "F1 score", "Accuracy"]):
+        sns.lineplot(
+            data=degradation_df,
+            x="threshold",
+            y=metric,
+            hue="dataset",
+            ax=axes[idx],
+            marker="o",
+        )
+        axes[idx].tick_params(axis="both", which="major", labelsize=14)
+        axes[idx].set_xlabel("Threshold", fontsize=14)
+        axes[idx].set_ylabel(metric, fontsize=14)
+        axes[idx].set_ylim(0.5, 1)
+        axes[idx].get_legend().set_visible(False)
+    handles, labels = axes[0].get_legend_handles_labels()
+
+    fig.legend(
+        handles,
+        labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.15),
+        ncol=6,
+        fontsize=14,
+    )
+    fig.tight_layout()
+    fig.savefig(os.path.join(degradation_folder, "degradation_1x4.pdf"))
