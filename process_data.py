@@ -6,9 +6,17 @@ import sys
 
 import networkx as nx
 from tqdm import tqdm
+import argparse
 
-data_name = sys.argv[1]
-data_proccessed_dir = "data_processed/%s" % data_name
+parser = argparse.ArgumentParser()
+parser.add_argument("--data_name", type=str)
+parser.add_argument("--real", action="store_true")
+parser.add_argument("--testonly", action="store_true")
+parser.add_argument("--directed", action="store_true")
+
+args = parser.parse_args()
+
+data_proccessed_dir = "data_processed/%s" % args.data_name
 
 if not os.path.exists("data_processed"):
     os.mkdir("data_processed")
@@ -38,20 +46,28 @@ def read_graphs(database_file_name):
                 if cols[-1] == "-1":
                     break
 
-                tgraph = nx.Graph()
+                if args.directed:
+                    tgraph = nx.DiGraph()
+                else:
+                    tgraph = nx.Graph()
                 graph_cnt = int(cols[2])
 
             elif cols[0] == "v":
                 tgraph.add_node(int(cols[1]), label=int(cols[2]))
 
             elif cols[0] == "e":
-                tgraph.add_edge(int(cols[1]), int(cols[2]), label=int(cols[3]))
+                node1, node2 = int(cols[1]), int(cols[2])
+                if node1 < node2:
+                    tgraph.add_edge(node1, node2, label=int(cols[3]))
+                else:
+                    tgraph.add_edge(node2, node1, label=int(cols[3]))
 
         # adapt to input files that do not end with 't # -1'
         if tgraph is not None:
             graphs[graph_cnt] = tgraph
             sizes[graph_cnt] = tgraph.number_of_nodes()
-            degrees[graph_cnt] = sum(dict(tgraph.degree).values()) / sizes[graph_cnt]
+            degrees[graph_cnt] = sum(
+                dict(tgraph.degree).values()) / sizes[graph_cnt]
 
     return graphs, sizes, degrees
 
@@ -148,7 +164,8 @@ def load_dataset(data_dir, list_source, save_dir, additional_tag=""):
 
     if additional_tag != "" and additional_tag == "test":
         pickle.dump(size_dict, open(f"{save_dir}/subgraphs_size.pkl", "wb"))
-        pickle.dump(degree_dict, open(f"{save_dir}/subgraphs_degree.pkl", "wb"))
+        pickle.dump(degree_dict, open(
+            f"{save_dir}/subgraphs_degree.pkl", "wb"))
 
     return list(size_dict.keys())
 
@@ -158,13 +175,13 @@ if not os.path.exists(data_proccessed_dir):
     os.mkdir(data_proccessed_dir)
 
 # %%
-if sys.argv[2] == "synthesis":
-    if len(sys.argv) >= 4 and sys.argv[3] == "testonly":
+if not args.real:
+    if args.testonly:
         additional_tag = "test"
     else:
         additional_tag = ""
 
-    data_dir = "data_%s/datasets/%s" % (sys.argv[2], data_name)
+    data_dir = "data_synthesis/datasets/%s" % (args.data_name)
 
     list_source = os.listdir(data_dir)
     list_source = list(
@@ -190,8 +207,8 @@ if sys.argv[2] == "synthesis":
         train_keys = [k for k in valid_keys if k.split("_")[0] in train_source]
         test_keys = [k for k in valid_keys if k.split("_")[0] in test_source]
 
-elif sys.argv[2] == "real":
-    data_dir = "data_%s/datasets/%s" % (sys.argv[2], data_name + "_test")
+elif args.real:
+    data_dir = "data_real/datasets/%s" % (args.data_name + "_test")
     list_source = os.listdir(data_dir)
     list_source = list(
         filter(lambda x: os.path.isdir(os.path.join(data_dir, x)), list_source)
@@ -200,12 +217,11 @@ elif sys.argv[2] == "real":
     test_keys = load_dataset(
         data_dir, list_source, data_proccessed_dir, additional_tag="test"
     )
-    test_keys = os.listdir(data_proccessed_dir)
 
-    if len(sys.argv) >= 4 and sys.argv[3] == "testonly":
+    if args.testonly:
         train_keys = []
     else:
-        data_dir_train = "data_%s/datasets/%s" % (sys.argv[2], data_name + "_train")
+        data_dir_train = "data_real/datasets/%s" % (args.data_name + "_train")
         list_source_train = os.listdir(data_dir_train)
         list_source_train = list(
             filter(
@@ -220,7 +236,6 @@ elif sys.argv[2] == "real":
             data_proccessed_dir,
             additional_tag="train",
         )
-        train_keys = list(set(os.listdir(data_proccessed_dir)) - set(test_keys))
 
 # Notice that key which has "iso" is isomorphism, otherwise non-isomorphism
 
@@ -233,11 +248,11 @@ with open("%s/train_keys.pkl" % data_proccessed_dir, "wb") as f:
 with open("%s/test_keys.pkl" % data_proccessed_dir, "wb") as f:
     pickle.dump(test_keys, f)
 
-if sys.argv[2] == "real" or (
-    sys.argv[2] == "synthesis" and len(sys.argv) >= 4 and sys.argv[3] == "testonly"
-):
-    size_dict = pickle.load(open(f"{data_proccessed_dir}/subgraphs_size.pkl", "rb"))
-    degree_dict = pickle.load(open(f"{data_proccessed_dir}/subgraphs_degree.pkl", "rb"))
+if args.real or (not args.real and args.testonly):
+    size_dict = pickle.load(
+        open(f"{data_proccessed_dir}/subgraphs_size.pkl", "rb"))
+    degree_dict = pickle.load(
+        open(f"{data_proccessed_dir}/subgraphs_degree.pkl", "rb"))
 
     nondense_0_20 = list(
         filter(lambda x: size_dict[x] <= 20 and degree_dict[x] <= 3, test_keys)

@@ -12,9 +12,9 @@ python generate_data_v1.py --config configs/DHFR.json
 python generate_data_v1.py --config configs/DBLP-v1.json
 python generate_data_v1.py --config configs/MSRC-21.json
 
-python process_data.py COX2 real
-python process_data.py COX2_MD real
-python process_data.py KKI real
-python process_data.py DHFR real
-python process_data.py DBLP-v1 real
-python process_data.py MSRC-21 real
+python process_data.py --data_name COX2 --real
+python process_data.py --data_name COX2_MD --real
+python process_data.py --data_name KKI --real
+python process_data.py --data_name DHFR --real
+python process_data.py --data_name DBLP-v1 --real
+python process_data.py --data_name MSRC-21 --real

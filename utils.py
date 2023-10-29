@@ -29,6 +29,14 @@ def plotGraph(
     if not edgeColors:
         edgeColors = "black"
 
+    latex_code = nx.to_latex(
+        graph,
+        pos,
+        node_label=nodeLabels,
+    )
+    with open(fig_name[:-3] + "txt", "w") as f:
+        f.write(latex_code)
+
     nx.draw(
         graph,
         pos,
@@ -62,7 +70,8 @@ def write_graphs(graphs, out_file_name):
             for nod1, nod2 in g.edges:
                 nid1 = node_mapping[nod1]
                 nid2 = node_mapping[nod2]
-                f.write("e %d %d %d\n" % (nid1, nid2, g.edges[(nod1, nod2)]["label"]))
+                f.write("e %d %d %d\n" %
+                        (nid1, nid2, g.edges[(nod1, nod2)]["label"]))
 
 
 def read_mapping(mapping_file, sg2g=False):
@@ -160,7 +169,8 @@ def onehot_encoding(x, max_x):
 
 def one_of_k_encoding(x, allowable_set):
     if x not in allowable_set:
-        raise Exception("input {0} not in allowable set{1}:".format(x, allowable_set))
+        raise Exception(
+            "input {0} not in allowable set{1}:".format(x, allowable_set))
 
     return list(map(lambda s: x == s, allowable_set))
 
