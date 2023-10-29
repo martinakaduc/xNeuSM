@@ -155,7 +155,8 @@ def evaluate(args):
     print(avg_results)
 
     with open(
-        os.path.join(args.result_dir, "%s_result_matching.csv" % args.dataset),
+        os.path.join(
+            args.result_dir, f"{args.dataset}_result_matching{'_directed' if args.directed else ''}.csv"),
         "w",
         encoding="utf-8",
     ) as f:

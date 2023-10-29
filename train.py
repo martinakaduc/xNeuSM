@@ -97,6 +97,10 @@ def main(args):
         save_dir += "_" + args.tag
         log_dir += "_" + args.tag
 
+    if args.directed:
+        save_dir += "_directed"
+        log_dir += "_directed"
+
     # Make save dir if it doesn't exist
     if not os.path.isdir(save_dir):
         os.system("mkdir " + save_dir)
