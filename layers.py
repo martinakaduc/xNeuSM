@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 
 class GAT_gate(torch.nn.Module):
-    def __init__(self, n_in_feature, n_out_feature, nhop, gpu=False):
+    def __init__(self, n_in_feature, n_out_feature, nhop, directed=False, gpu=False):
         super(GAT_gate, self).__init__()
         self.W = nn.Linear(n_in_feature, n_out_feature)
         self.A = nn.Parameter(torch.zeros(size=(n_out_feature, n_out_feature)))
@@ -15,12 +15,14 @@ class GAT_gate(torch.nn.Module):
             self.zeros = self.zeros.cuda()
 
         self.nhop = nhop
+        self.directed = directed
 
     def forward(self, x, adj, get_attention=False):
         h = self.W(x)
 
         e = torch.einsum("ijl,ikl->ijk", (torch.matmul(h, self.A), h))
-        e = e + e.permute((0, 2, 1))
+        if not self.directed:
+            e = e + e.permute((0, 2, 1))
 
         attention = torch.where(adj > 0, e, self.zeros)
         attention = F.softmax(attention, dim=1)

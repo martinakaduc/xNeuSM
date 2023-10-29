@@ -51,18 +51,20 @@ if __name__ == "__main__":
         "40-60": "$|V_{\mathcal{P}}| \in (40, 60]$",
         ">60": "$|V_{\mathcal{P}}| \in (60, |V_{\mathcal{T}}|]$",
     }
-    for dataset in ["COX2", "DBLP-v1", "DHFR", "KKI", "MSRC-21"]:
+    list_df = {}
+
+    for dataset in ["KKI", "COX2", "DBLP-v1", "COX2_MD", "MSRC-21", "DHFR"]:
         # Find the runtime file starting with the dataset name
+        files = [f"{dataset}-dense.csv", f"{dataset}-nondense.csv"]
         files = [
-            file for file in list_runtime_files if file.startswith(dataset)]
+            file for file in list_runtime_files if file in files]
         files.sort(key=lambda x: x.split("-")[-1], reverse=True)
         num_subplots = len(files)
         # Delete the runtime file starting with the dataset name
         list_runtime_files = [
-            file for file in list_runtime_files if not file.startswith(dataset)
+            file for file in list_runtime_files if file not in files
         ]
 
-        list_df = {}
         for file in files:
             df_name = (
                 file[: file.rfind("-")]
@@ -89,48 +91,44 @@ if __name__ == "__main__":
             runtime_df = pd.DataFrame(runtime_df)
             list_df[df_name] = runtime_df
 
-        # Draw line plot
-        # Header: algo, <20, 20-40, 40-60, >60
-        fig, axes = plt.subplots(
-            figsize=(6 * num_subplots, 3), ncols=num_subplots)
+    # Draw line plot
+    # Header: algo, <20, 20-40, 40-60, >60
+    fig, axes = plt.subplots(
+        figsize=(6 * 3, 3 * 3), ncols=3, nrows=3)
 
-        if len(list_df) == 1:
-            axes = [axes]
-
-        idx = 0
-        for name, df in list_df.items():
-            sns.lineplot(
-                data=df, x="settings", y="runtime", hue="algo", ax=axes[idx], marker="o"
-            )
-            axes[idx].tick_params(axis="both", which="major", labelsize=14)
-            # axes[idx].tick_params(axis='x', rotation=10)
-            axes[idx].set_xlabel("", fontsize=14)
-            axes[idx].set_ylabel("Runtime $(s)$", fontsize=14)
-            axes[idx].set_yscale("log")
-            axes[idx].set_title(name, fontsize=16)
-            axes[idx].get_legend().set_visible(False)
-            idx += 1
-
-        handles, labels = axes[0].get_legend_handles_labels()
-        # fig.legend(handles, labels, loc='lower center',
-        #            bbox_to_anchor=(0.5, -0.1*(2//num_subplots)), ncol=(4*num_subplots)+1)
-        fig.legend(
-            handles,
-            labels,
-            loc="lower center",
-            bbox_to_anchor=(0.5, -0.15),
-            ncol=9,
-            fontsize=12,
+    # 3x3 plot
+    idx = 0
+    for name, df in list_df.items():
+        sns.lineplot(
+            data=df, x="settings", y="runtime", hue="algo", ax=axes[idx // 3][idx % 3], marker="o"
         )
-        fig.tight_layout()
-        fig.savefig(os.path.join(runtime_folder, f"runtime_{dataset}.pdf"))
+        axes[idx // 3][idx %
+                       3].tick_params(axis="both", which="major", labelsize=14)
+        # axes[idx].tick_params(axis='x', rotation=10)
+        axes[idx // 3][idx % 3].set_xlabel("", fontsize=14)
+        axes[idx // 3][idx % 3].set_ylabel("Runtime $(s)$", fontsize=14)
+        axes[idx // 3][idx % 3].set_yscale("log")
+        axes[idx // 3][idx % 3].set_title(name, fontsize=16)
+        axes[idx // 3][idx % 3].get_legend().set_visible(False)
+        idx += 1
+    handles, labels = axes[0][0].get_legend_handles_labels()
+
+    fig.legend(
+        handles,
+        labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.05),
+        ncol=9,
+        fontsize=12,
+    )
+    fig.tight_layout()
+    fig.savefig(os.path.join(runtime_folder, f"runtime_by_dataset.pdf"))
     ##############################################################################
     # Load each performance results
     list_performance_files = os.listdir(performance_folder)
     list_performance_files = [
-        file
-        for file in list_performance_files
-        if file.endswith(".csv") and file != "average.csv"
+        "KKI.csv", "COX2.csv", "COX2_MD.csv",
+        "DHFR.csv", "DBLP-v1.csv", "MSRC-21.csv"
     ]
 
     performance_df = {

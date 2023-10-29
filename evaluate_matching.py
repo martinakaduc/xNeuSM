@@ -217,6 +217,8 @@ if __name__ == "__main__":
         default="static",
         choices=["static", "cont", "jump"],
     )
+    parser.add_argument("--directed", action="store_true",
+                        help="directed graph")
     parser.add_argument("--nhop", help="number of hops", type=int, default=1)
     parser.add_argument(
         "--branch",

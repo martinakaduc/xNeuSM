@@ -31,8 +31,11 @@ class gnn(torch.nn.Module):
         self.gconv1 = nn.ModuleList(
             [
                 GAT_gate(
-                    self.layers1[i], self.layers1[i +
-                                                  1], cal_nhop(i), args.ngpu > 0
+                    self.layers1[i],
+                    self.layers1[i+1],
+                    cal_nhop(i),
+                    directed=args.directed,
+                    gpu=(args.ngpu > 0)
                 )
                 for i in range(len(self.layers1) - 1)
             ]
