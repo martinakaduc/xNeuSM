@@ -81,7 +81,8 @@ parser.add_argument("--test_keys", help="test keys",
 def main(args):
     # hyper parameters
     data_path = os.path.join(args.data_path, args.dataset)
-    result_file = "%s_result" % args.dataset + args.test_keys[9:-4] + ".csv"
+    result_file = "%s_result" % args.dataset + \
+        args.test_keys[9:-4] + f"{'_directed' if args.directed else ''}.csv"
     args.train_keys = os.path.join(data_path, args.train_keys)
     args.test_keys = os.path.join(data_path, args.test_keys)
     result_dir = os.path.join(
