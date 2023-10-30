@@ -48,15 +48,12 @@ parser.add_argument(
     default="both",
     choices=["both", "left", "right"],
 )
-parser.add_argument("--n_graph_layer",
-                    help="number of GNN layer", type=int, default=4)
+parser.add_argument("--n_graph_layer", help="number of GNN layer", type=int, default=4)
 parser.add_argument(
     "--d_graph_layer", help="dimension of GNN layer", type=int, default=140
 )
-parser.add_argument(
-    "--n_FC_layer", help="number of FC layer", type=int, default=4)
-parser.add_argument(
-    "--d_FC_layer", help="dimension of FC layer", type=int, default=128)
+parser.add_argument("--n_FC_layer", help="number of FC layer", type=int, default=4)
+parser.add_argument("--d_FC_layer", help="dimension of FC layer", type=int, default=128)
 parser.add_argument(
     "--data_path", help="path to the data", type=str, default="data_processed"
 )
@@ -66,23 +63,23 @@ parser.add_argument(
     type=str,
     default="results/",
 )
-parser.add_argument("--dropout_rate", help="dropout_rate",
-                    type=float, default=0.0)
-parser.add_argument("--al_scale", help="attn_loss scale",
-                    type=float, default=1.0)
+parser.add_argument("--dropout_rate", help="dropout_rate", type=float, default=0.0)
+parser.add_argument("--al_scale", help="attn_loss scale", type=float, default=1.0)
 parser.add_argument("--ckpt", help="Load ckpt file", type=str, default="")
 parser.add_argument(
     "--train_keys", help="train keys", type=str, default="train_keys.pkl"
 )
-parser.add_argument("--test_keys", help="test keys",
-                    type=str, default="test_keys.pkl")
+parser.add_argument("--test_keys", help="test keys", type=str, default="test_keys.pkl")
 
 
 def main(args):
     # hyper parameters
     data_path = os.path.join(args.data_path, args.dataset)
-    result_file = "%s_result" % args.dataset + \
-        args.test_keys[9:-4] + f"{'_directed' if args.directed else ''}.csv"
+    result_file = (
+        "%s_result" % args.dataset
+        + args.test_keys[9:-4]
+        + f"{'_directed' if args.directed else ''}.csv"
+    )
     args.train_keys = os.path.join(data_path, args.train_keys)
     args.test_keys = os.path.join(data_path, args.test_keys)
     result_dir = os.path.join(
@@ -117,8 +114,7 @@ def main(args):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = utils.initialize_model(model, device, load_save_file=args.ckpt)
 
-    test_dataset = BaseDataset(
-        test_keys, data_path, embedding_dim=args.embedding_dim)
+    test_dataset = BaseDataset(test_keys, data_path, embedding_dim=args.embedding_dim)
     test_dataloader = DataLoader(
         test_dataset,
         args.batch_size,

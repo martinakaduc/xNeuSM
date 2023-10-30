@@ -14,12 +14,11 @@ if __name__ == "__main__":
     list_alpha = np.linspace(0.1, 0.9, 9)
 
     def fn(x, k):
-        return (1 - x) ** (k+1)
+        return (1 - x) ** (k + 1)
 
     for alpha in list_alpha:
         y = fn(alpha, k)
-        plt.plot(
-            k, y, label=f"$\\alpha={round(alpha, 1)}$", marker="o", markersize=2)
+        plt.plot(k, y, label=f"$\\alpha={round(alpha, 1)}$", marker="o", markersize=2)
 
     plt.legend(ncol=2)
     plt.xlabel("$K$")
