@@ -44,33 +44,26 @@ parser.add_argument(
     default="both",
     choices=["both", "left", "right"],
 )
-parser.add_argument("--n_graph_layer",
-                    help="number of GNN layer", type=int, default=4)
+parser.add_argument("--n_graph_layer", help="number of GNN layer", type=int, default=4)
 parser.add_argument(
     "--d_graph_layer", help="dimension of GNN layer", type=int, default=140
 )
-parser.add_argument(
-    "--n_FC_layer", help="number of FC layer", type=int, default=4)
-parser.add_argument(
-    "--d_FC_layer", help="dimension of FC layer", type=int, default=128)
+parser.add_argument("--n_FC_layer", help="number of FC layer", type=int, default=4)
+parser.add_argument("--d_FC_layer", help="dimension of FC layer", type=int, default=128)
 parser.add_argument(
     "--data_path", help="path to the data", type=str, default="data_processed"
 )
 parser.add_argument(
     "--save_dir", help="save directory of model parameter", type=str, default="save/"
 )
-parser.add_argument("--log_dir", help="logging directory",
-                    type=str, default="log/")
-parser.add_argument("--dropout_rate", help="dropout_rate",
-                    type=float, default=0.0)
-parser.add_argument("--al_scale", help="attn_loss scale",
-                    type=float, default=1.0)
+parser.add_argument("--log_dir", help="logging directory", type=str, default="log/")
+parser.add_argument("--dropout_rate", help="dropout_rate", type=float, default=0.0)
+parser.add_argument("--al_scale", help="attn_loss scale", type=float, default=1.0)
 parser.add_argument("--ckpt", help="Load ckpt file", type=str, default="")
 parser.add_argument(
     "--train_keys", help="train keys", type=str, default="train_keys.pkl"
 )
-parser.add_argument("--test_keys", help="test keys",
-                    type=str, default="test_keys.pkl")
+parser.add_argument("--test_keys", help="test keys", type=str, default="test_keys.pkl")
 parser.add_argument(
     "--tag", help="Additional tag for saving and logging folder", type=str, default=""
 )
@@ -127,10 +120,8 @@ def main(args):
     model = utils.initialize_model(model, device, load_save_file=args.ckpt)
 
     # Train and test dataset
-    train_dataset = BaseDataset(
-        train_keys, data_path, embedding_dim=args.embedding_dim)
-    test_dataset = BaseDataset(
-        test_keys, data_path, embedding_dim=args.embedding_dim)
+    train_dataset = BaseDataset(train_keys, data_path, embedding_dim=args.embedding_dim)
+    test_dataset = BaseDataset(test_keys, data_path, embedding_dim=args.embedding_dim)
 
     # num_train_iso = len([0 for k in train_keys if 'iso' in k])
     # num_train_non = len([0 for k in train_keys if 'non' in k])

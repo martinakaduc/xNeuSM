@@ -1,12 +1,12 @@
 # %%
 # Create sample train and test keys
+import argparse
 import os
 import pickle
 import sys
 
 import networkx as nx
 from tqdm import tqdm
-import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_name", type=str)
@@ -66,8 +66,7 @@ def read_graphs(database_file_name):
         if tgraph is not None:
             graphs[graph_cnt] = tgraph
             sizes[graph_cnt] = tgraph.number_of_nodes()
-            degrees[graph_cnt] = sum(
-                dict(tgraph.degree).values()) / sizes[graph_cnt]
+            degrees[graph_cnt] = sum(dict(tgraph.degree).values()) / sizes[graph_cnt]
 
     return graphs, sizes, degrees
 
@@ -164,8 +163,7 @@ def load_dataset(data_dir, list_source, save_dir, additional_tag=""):
 
     if additional_tag != "" and additional_tag == "test":
         pickle.dump(size_dict, open(f"{save_dir}/subgraphs_size.pkl", "wb"))
-        pickle.dump(degree_dict, open(
-            f"{save_dir}/subgraphs_degree.pkl", "wb"))
+        pickle.dump(degree_dict, open(f"{save_dir}/subgraphs_degree.pkl", "wb"))
 
     return list(size_dict.keys())
 
@@ -249,10 +247,8 @@ with open("%s/test_keys.pkl" % data_proccessed_dir, "wb") as f:
     pickle.dump(test_keys, f)
 
 if args.real or (not args.real and args.testonly):
-    size_dict = pickle.load(
-        open(f"{data_proccessed_dir}/subgraphs_size.pkl", "rb"))
-    degree_dict = pickle.load(
-        open(f"{data_proccessed_dir}/subgraphs_degree.pkl", "rb"))
+    size_dict = pickle.load(open(f"{data_proccessed_dir}/subgraphs_size.pkl", "rb"))
+    degree_dict = pickle.load(open(f"{data_proccessed_dir}/subgraphs_degree.pkl", "rb"))
 
     nondense_0_20 = list(
         filter(lambda x: size_dict[x] <= 20 and degree_dict[x] <= 3, test_keys)

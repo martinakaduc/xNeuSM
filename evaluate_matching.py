@@ -58,7 +58,8 @@ def evaluate(args):
     model = utils.initialize_model(model, device, load_save_file=args.ckpt)
 
     test_dataset = BaseDataset(
-        test_keys, args.data_path, embedding_dim=args.embedding_dim)
+        test_keys, args.data_path, embedding_dim=args.embedding_dim
+    )
     test_dataloader = DataLoader(
         test_dataset,
         args.batch_size,
@@ -142,8 +143,7 @@ def evaluate(args):
                 }
             )
 
-            results = eval_mapping(
-                gt_mapping, sorted_predict_mapping, pred_mapping)
+            results = eval_mapping(gt_mapping, sorted_predict_mapping, pred_mapping)
             list_results.append(results)
 
     end = time.time()
@@ -156,7 +156,9 @@ def evaluate(args):
 
     with open(
         os.path.join(
-            args.result_dir, f"{args.dataset}_result_matching{'_directed' if args.directed else ''}.csv"),
+            args.result_dir,
+            f"{args.dataset}_result_matching{'_directed' if args.directed else ''}.csv",
+        ),
         "w",
         encoding="utf-8",
     ) as f:
@@ -188,8 +190,7 @@ if __name__ == "__main__":
         "--mapping_threshold", help="mapping threshold", type=float, default=1e-5
     )
     parser.add_argument("--ngpu", help="number of gpu", type=int, default=1)
-    parser.add_argument("--batch_size", help="batch_size",
-                        type=int, default=32)
+    parser.add_argument("--batch_size", help="batch_size", type=int, default=32)
     parser.add_argument(
         "--embedding_dim",
         help="node embedding dim aka number of distinct node label",
@@ -202,15 +203,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--d_graph_layer", help="dimension of GNN layer", type=int, default=140
     )
-    parser.add_argument(
-        "--n_FC_layer", help="number of FC layer", type=int, default=4)
+    parser.add_argument("--n_FC_layer", help="number of FC layer", type=int, default=4)
     parser.add_argument(
         "--d_FC_layer", help="dimension of FC layer", type=int, default=128
     )
-    parser.add_argument("--dropout_rate", help="dropout_rate",
-                        type=float, default=0.0)
-    parser.add_argument("--al_scale", help="attn_loss scale",
-                        type=float, default=1.0)
+    parser.add_argument("--dropout_rate", help="dropout_rate", type=float, default=0.0)
+    parser.add_argument("--al_scale", help="attn_loss scale", type=float, default=1.0)
     parser.add_argument(
         "--tatic",
         help="tactic of defining number of hops",
@@ -218,8 +216,7 @@ if __name__ == "__main__":
         default="static",
         choices=["static", "cont", "jump"],
     )
-    parser.add_argument("--directed", action="store_true",
-                        help="directed graph")
+    parser.add_argument("--directed", action="store_true", help="directed graph")
     parser.add_argument("--nhop", help="number of hops", type=int, default=1)
     parser.add_argument(
         "--branch",

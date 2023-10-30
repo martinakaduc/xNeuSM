@@ -14,11 +14,9 @@ from scipy.spatial import distance_matrix
 class InferenceGNN:
     def __init__(self, args) -> None:
         self.model = gnn(args)
-        self.device = torch.device(
-            "cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = utils.initialize_model(
-            self.model, self.device, load_save_file=args.ckpt, gpu=(
-                args.ngpu > 0)
+            self.model, self.device, load_save_file=args.ckpt, gpu=(args.ngpu > 0)
         )
 
         self.model.eval()
@@ -64,8 +62,7 @@ class InferenceGNN:
         return sample
 
     def input_to_tensor(self, batch_input):
-        max_natoms = max([len(item["H"])
-                         for item in batch_input if item is not None])
+        max_natoms = max([len(item["H"]) for item in batch_input if item is not None])
         batch_size = len(batch_input)
 
         H = np.zeros((batch_size, max_natoms, batch_input[0]["H"].shape[-1]))
@@ -135,8 +132,7 @@ if __name__ == "__main__":
         "--mapping_threshold", help="mapping threshold", type=float, default=1e-5
     )
     parser.add_argument("--ngpu", help="number of gpu", type=int, default=1)
-    parser.add_argument("--batch_size", help="batch_size",
-                        type=int, default=32)
+    parser.add_argument("--batch_size", help="batch_size", type=int, default=32)
     parser.add_argument(
         "--embedding_dim",
         help="node embedding dim aka number of distinct node label",
@@ -149,15 +145,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--d_graph_layer", help="dimension of GNN layer", type=int, default=140
     )
-    parser.add_argument(
-        "--n_FC_layer", help="number of FC layer", type=int, default=4)
+    parser.add_argument("--n_FC_layer", help="number of FC layer", type=int, default=4)
     parser.add_argument(
         "--d_FC_layer", help="dimension of FC layer", type=int, default=128
     )
-    parser.add_argument("--dropout_rate", help="dropout_rate",
-                        type=float, default=0.0)
-    parser.add_argument("--al_scale", help="attn_loss scale",
-                        type=float, default=1.0)
+    parser.add_argument("--dropout_rate", help="dropout_rate", type=float, default=0.0)
+    parser.add_argument("--al_scale", help="attn_loss scale", type=float, default=1.0)
     parser.add_argument(
         "--tatic",
         help="tactic of defining number of hops",
@@ -165,8 +158,7 @@ if __name__ == "__main__":
         default="static",
         choices=["static", "cont", "jump"],
     )
-    parser.add_argument("--directed", action="store_true",
-                        help="directed graph")
+    parser.add_argument("--directed", action="store_true", help="directed graph")
     parser.add_argument("--nhop", help="number of hops", type=int, default=1)
     parser.add_argument(
         "--branch",
@@ -184,11 +176,10 @@ if __name__ == "__main__":
         type=str,
         default="results/",
     )
-    parser.add_argument("--source", help="source graph idx",
-                        type=int, default=0)
+    parser.add_argument("--source", help="source graph idx", type=int, default=0)
     parser.add_argument("--query", help="query graph idx", type=int, default=0)
-    parser.add_argument("--synthesis", action="store_true",
-                        help="synthesis data")
+    parser.add_argument("--iso", action="store_true", help="wheather using iso/noniso")
+    parser.add_argument("--synthesis", action="store_true", help="synthesis data")
 
     args = parser.parse_args()
     print(args)
@@ -217,20 +208,29 @@ if __name__ == "__main__":
 
     # Load subgraph
     subgraphs = utils.read_graphs(
-        f"{data_path}/{args.source}/iso_subgraphs.lg")
+        f"{data_path}/{args.source}/{'non' if not args.iso else ''}iso_subgraphs.lg"
+    )
+
     subgraph = subgraphs[args.query]
     print("subgraph", subgraph != None)
-    # utils.plotGraph(subgraph, showLabel=False)
+    print("subgraph nodes", subgraph.number_of_nodes())
+    utils.plotGraph(
+        subgraph,
+        showLabel=False,
+        fig_name=f"{args.result_dir}/{args.source}_{args.query}_{'iso' if args.iso else 'noniso'}_subgraph.pdf",
+    )
 
     # Load graph
     graphs = utils.read_graphs(f"{data_path}/{args.source}/source.lg")
-    graph = graphs[0]
+
+    graph = graphs[args.source]
     print("graph", graph != None)
+    print("graph nodes", graph.number_of_nodes())
     # utils.plotGraph(graph, showLabel=True)
 
     # Load mapping groundtruth
     mapping_gts = utils.read_mapping(
-        f"{data_path}/{args.source}/iso_subgraphs_mapping.lg"
+        f"{data_path}/{args.source}/{'non' if not args.iso else ''}iso_subgraphs_mapping.lg"
     )
     mapping_gt = mapping_gts[args.query]
     print(mapping_gt)
@@ -276,11 +276,10 @@ if __name__ == "__main__":
 
             max_prob = max(cnode_mapping, key=lambda x: x[1])[1]
             mapping_dict[node] = list(
-                map(lambda x: x[0], filter(
-                    lambda y: y[1] == max_prob, cnode_mapping))
+                map(lambda x: x[0], filter(lambda y: y[1] == max_prob, cnode_mapping))
             )
 
-        # print(mapping_dict)
+        print("Mapping:", mapping_dict)
 
         node_labels = {n: "" for n in graph.nodes}
         for sgn, list_gn in mapping_dict.items():
@@ -348,11 +347,11 @@ if __name__ == "__main__":
             nodeLabels=node_labels,
             nodeColors=list(node_colors.values()),
             edgeColors=list(edge_colors.values()),
-            fig_name=f"{args.result_dir}/{args.source}_{args.query}.pdf",
+            fig_name=f"{args.result_dir}/{args.source}_{args.query}_{'iso' if args.iso else 'noniso'}.pdf",
         )
 
         with open(
-            f"{args.result_dir}/mapping_{args.source}_{args.query}.csv",
+            f"{args.result_dir}/mapping_{args.source}_{args.query}_{'iso' if args.iso else 'noniso'}.csv",
             "w",
             encoding="utf8",
         ) as f:
