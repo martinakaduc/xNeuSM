@@ -6,6 +6,15 @@ python train.py --ngpu 1 \
                 --tatic jump \
                 --embedding_dim 39
 
+python train.py --ngpu 1 \
+                --dataset DBLP-v1 \
+                --batch_size 256 \
+                --epoch 30 \
+                --dropout_rate 0.0 \
+                --tatic jump \
+                --directed \
+                --embedding_dim 39
+
 # End2end evaluation
 python evaluate.py --ngpu 1 \
                    --dataset DBLP-v1 \
@@ -14,6 +23,15 @@ python evaluate.py --ngpu 1 \
                    --tatic jump \
                    --embedding_dim 39 \
                    --ckpt save/DBLP-v1_jump_1/save_29.pt
+
+python evaluate.py --ngpu 1 \
+                   --dataset DBLP-v1 \
+                   --batch_size 256 \
+                   --dropout_rate 0.0 \
+                   --tatic jump \
+                   --embedding_dim 39 \
+                   --directed \
+                   --ckpt save/DBLP-v1_jump_1_directed/save_29.pt
 
 # Scalability evaluation
 python evaluate.py --ngpu 1 \
@@ -60,6 +78,15 @@ python evaluate_matching.py --ngpu 1 \
                             --dropout_rate 0.0 \
                             --tatic jump \
                             --embedding_dim 39 \
+                            --ckpt save/DBLP-v1_jump_1/save_29.pt
+
+python evaluate_matching.py --ngpu 1 \
+                            --dataset DBLP-v1 \
+                            --batch_size 128 \
+                            --dropout_rate 0.0 \
+                            --tatic jump \
+                            --embedding_dim 39 \
+                            --directed \
                             --ckpt save/DBLP-v1_jump_1/save_29.pt
 
 # Generalization
