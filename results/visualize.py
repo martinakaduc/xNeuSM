@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     runtime_df = pd.DataFrame(runtime_df)
 
-    fig, ax = plt.subplots(figsize=(5, 3))
+    fig, ax = plt.subplots(figsize=(7, 3))
     sns.barplot(data=runtime_df, x="dataset", y="runtime", hue="algo", ax=ax)
     ax.set_ylabel("Runtime $(s)$")
     ax.set_xlabel("")
@@ -178,14 +178,14 @@ if __name__ == "__main__":
     fig.savefig(os.path.join(performance_folder, "performance_1x4.pdf"))
 
     # 2x2 plot
-    fig, axes = plt.subplots(figsize=(5 * 2, 4 * 2), ncols=2, nrows=2)
+    fig, axes = plt.subplots(figsize=(8 * 2, 4 * 2), ncols=2, nrows=2)
     for idx, metric in enumerate(["ROC AUC", "PR AUC", "F1 score", "Accuracy"]):
         sns.barplot(
             data=performance_df, x="dataset", y=metric, hue="algo", ax=axes[idx//2][idx % 2]
         )
         axes[idx//2][idx %
                      2].tick_params(axis="both", which="major", labelsize=14)
-        axes[idx//2][idx % 2].tick_params(axis="x", rotation=45)
+        axes[idx//2][idx % 2].tick_params(axis="x")
         axes[idx//2][idx % 2].set_ylabel(metric, fontsize=14)
         axes[idx//2][idx % 2].set_xlabel("")
         axes[idx//2][idx % 2].set_ylim(0.5, 1)
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     degradation_df = pd.DataFrame(degradation_df)
 
     # 2x2 plot
-    fig, axes = plt.subplots(figsize=(5 * 2, 3 * 2), ncols=2, nrows=2)
+    fig, axes = plt.subplots(figsize=(6 * 2, 3 * 2), ncols=2, nrows=2)
     for idx, metric in enumerate(["ROC AUC", "PR AUC", "F1 score", "Accuracy"]):
         row_idx = idx // 2
         col_idx = idx % 2

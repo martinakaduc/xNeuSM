@@ -6,6 +6,15 @@ python train.py --ngpu 1 \
                 --tatic jump \
                 --embedding_dim 190
 
+python train.py --ngpu 1 \
+                --dataset KKI \
+                --batch_size 64 \
+                --epoch 30 \
+                --dropout_rate 0.0 \
+                --tatic jump \
+                --embedding_dim 190 \
+                --directed
+
 # End2end evaluation
 python evaluate.py --ngpu 1 \
                    --dataset KKI \
@@ -14,6 +23,15 @@ python evaluate.py --ngpu 1 \
                    --tatic jump \
                    --embedding_dim 190 \
                    --ckpt save/KKI_jump_1/save_29.pt
+
+python evaluate.py --ngpu 1 \
+                   --dataset KKI \
+                   --batch_size 64 \
+                   --dropout_rate 0.0 \
+                   --tatic jump \
+                   --embedding_dim 190 \
+                   --directed \
+                   --ckpt save/KKI_jump_1_directed/save_29.pt
 
 # Scalability evaluation
 python evaluate.py --ngpu 1 \
@@ -96,6 +114,15 @@ python evaluate_matching.py --ngpu 1 \
                             --tatic jump \
                             --embedding_dim 190 \
                             --ckpt save/KKI_jump_1/save_29.pt
+
+python evaluate_matching.py --ngpu 1 \
+                            --dataset KKI \
+                            --batch_size 64 \
+                            --dropout_rate 0.0 \
+                            --tatic jump \
+                            --embedding_dim 190 \
+                            --directed \
+                            --ckpt save/KKI_jump_1_directed/save_29.pt
 
 python viz_matching.py --ngpu 1 \
                        --dataset KKI_test \

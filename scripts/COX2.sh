@@ -6,6 +6,15 @@ python train.py --ngpu 1 \
                 --tatic jump \
                 --embedding_dim 20
 
+python train.py --ngpu 1 \
+                --dataset COX2 \
+                --batch_size 256 \
+                --epoch 30 \
+                --dropout_rate 0.0 \
+                --tatic jump \
+                --embedding_dim 20 \
+                --directed
+
 # End2end evaluation
 python evaluate.py --ngpu 1 \
                    --dataset COX2 \
@@ -14,6 +23,16 @@ python evaluate.py --ngpu 1 \
                    --tatic jump \
                    --embedding_dim 20 \
                    --ckpt save/COX2_jump_1/save_29.pt
+
+# Directed evaluation
+python evaluate.py --ngpu 1 \
+                   --dataset COX2 \
+                   --batch_size 256 \
+                   --dropout_rate 0.0 \
+                   --tatic jump \
+                   --embedding_dim 20 \
+                   --directed \
+                   --ckpt save/COX2_jump_1_directed/save_29.pt
 
 # Scalability evaluation
 python evaluate.py --ngpu 1 \
@@ -51,6 +70,15 @@ python evaluate_matching.py --ngpu 1 \
                             --tatic jump \
                             --embedding_dim 20 \
                             --ckpt save/COX2_jump_1/save_29.pt
+
+python evaluate_matching.py --ngpu 1 \
+                            --dataset COX2 \
+                            --batch_size 128 \
+                            --dropout_rate 0.0 \
+                            --tatic jump \
+                            --embedding_dim 20 \
+                            --directed \
+                            --ckpt save/COX2_jump_1_directed/save_29.pt
 
 # Generalization
 python train.py --ngpu 1 --dataset COX2 --batch_size 64 --epoch 30 --dropout_rate 0.0 --tatic jump --embedding_dim 190 --tag cross

@@ -5,6 +5,16 @@ python train.py --ngpu 1 \
                 --dropout_rate 0.0 \
                 --tatic jump \
                 --embedding_dim 141
+
+python train.py --ngpu 1 \
+                --dataset MSRC-21 \
+                --batch_size 64 \
+                --epoch 30 \
+                --dropout_rate 0.0 \
+                --tatic jump \
+                --embedding_dim 141 \
+                --directed
+
 # End2end evaluation
 python evaluate.py --ngpu 1 \
                    --dataset MSRC-21 \
@@ -13,6 +23,15 @@ python evaluate.py --ngpu 1 \
                    --tatic jump \
                    --embedding_dim 141 \
                    --ckpt save/MSRC-21_jump_1/save_29.pt
+
+python evaluate.py --ngpu 1 \
+                   --dataset MSRC-21 \
+                   --batch_size 64 \
+                   --dropout_rate 0.0 \
+                   --tatic jump \
+                   --embedding_dim 141 \
+                   --directed \
+                   --ckpt save/MSRC-21_jump_1_directed/save_29.pt
 
 # Scalability evaluation
 python evaluate.py --ngpu 1 \
@@ -95,6 +114,15 @@ python evaluate_matching.py --ngpu 1 \
                             --tatic jump \
                             --embedding_dim 141 \
                             --ckpt save/MSRC-21_jump_1/save_29.pt
+
+python evaluate_matching.py --ngpu 1 \
+                            --dataset MSRC-21 \
+                            --batch_size 64 \
+                            --dropout_rate 0.0 \
+                            --tatic jump \
+                            --embedding_dim 141 \
+                            --directed \
+                            --ckpt save/MSRC-21_jump_1_directed/save_29.pt
 
 # Generalization
 python train.py --ngpu 1 --dataset MSRC-21 --batch_size 64 --epoch 30 --dropout_rate 0.0 --tatic jump --embedding_dim 190 --tag cross

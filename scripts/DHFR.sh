@@ -6,14 +6,33 @@ python train.py --ngpu 1 \
                 --tatic jump \
                 --embedding_dim 71
 
+python train.py --ngpu 1 \
+                --dataset DHFR \
+                --batch_size 256 \
+                --epoch 30 \
+                --dropout_rate 0.0 \
+                --tatic jump \
+                --embedding_dim 71 \
+                --directed
+
 # End2end evaluation
 python evaluate.py --ngpu 1 \
                    --dataset DHFR \
-                   --batch_size 256 \
+                   --batch_size 64 \
                    --dropout_rate 0.0 \
                    --tatic jump \
                    --embedding_dim 71 \
                    --ckpt save/DHFR_jump_1/save_29.pt
+
+# Directed evaluation
+python evaluate.py --ngpu 1 \
+                   --dataset DHFR \
+                   --batch_size 64 \
+                   --dropout_rate 0.0 \
+                   --tatic jump \
+                   --embedding_dim 71 \
+                   --directed \
+                   --ckpt save/DHFR_jump_1_directed/save_29.pt
 
 # Scalability evaluation
 python evaluate.py --ngpu 1 \
@@ -60,6 +79,15 @@ python evaluate_matching.py --ngpu 1 \
                             --tatic jump \
                             --embedding_dim 71 \
                             --ckpt save/DHFR_jump_1/save_29.pt
+
+python evaluate_matching.py --ngpu 1 \
+                            --dataset DHFR \
+                            --batch_size 64 \
+                            --dropout_rate 0.0 \
+                            --tatic jump \
+                            --embedding_dim 71 \
+                            --directed \
+                            --ckpt save/DHFR_jump_1_directed/save_29.pt
 
 # Generalization
 python train.py --ngpu 1 --dataset DHFR --batch_size 64 --epoch 30 --dropout_rate 0.0 --tatic jump --embedding_dim 190 --tag cross
