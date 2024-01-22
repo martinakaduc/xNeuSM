@@ -1,3 +1,4 @@
+import typing
 from typing import Optional, Tuple, Union
 
 import torch
@@ -8,9 +9,9 @@ from torch.nn import Parameter
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.dense.linear import Linear
 from torch_geometric.nn.inits import glorot, zeros
-from torch_geometric.typing import NoneType  # noqa
 from torch_geometric.typing import (
     Adj,
+    NoneType,
     OptPairTensor,
     OptTensor,
     Size,
@@ -25,14 +26,25 @@ from torch_geometric.utils import (
 )
 from torch_geometric.utils.sparse import set_sparse_value
 
+if typing.TYPE_CHECKING:
+    from typing import overload
+else:
+    from torch.jit import _overload_method as overload
+
 
 class MultiHopGATConv(MessagePassing):
-    r"""The graph attentional operator from the `"Graph Attention Networks"
-    <https://arxiv.org/abs/1710.10903>`_ paper
+    r"""The graph attentional operator from the
+    `"Graph Learnable Multi-hop Attention Networks" 
+    <https://arxiv.org/abs/2312.01612>`_ paper
     .. math::
         \mathbf{x}^{\prime}_i = \alpha_{i,i}\mathbf{\Theta}\mathbf{x}_{i} +
         \sum_{j \in \mathcal{N}(i)} \alpha_{i,j}\mathbf{\Theta}\mathbf{x}_{j},
-    where the attention coefficients :math:`\alpha_{i,j}` are computed as
+    .. math::
+        \mathbf{z}^{k}_{i} = (1-\beta_{i})(\alpha_{i,i}\mathbf{\Theta}\mathbf{z}^{k-1}_{i} +
+        \sum_{j \in \mathcal{N}(i)} \alpha_{i,j}\mathbf{\Theta}\mathbf{z}^{k-1}_{j}) + 
+        \beta_{i}\mathbf{x}^{\prime}_i
+    where :math: `k` is the number of hops and 
+    the attention coefficients :math:`\alpha_{i,j}` are computed as
     .. math::
         \alpha_{i,j} =
         \frac{
@@ -61,6 +73,8 @@ class MultiHopGATConv(MessagePassing):
             A tuple corresponds to the sizes of source and target
             dimensionalities.
         out_channels (int): Size of each output sample.
+        hops (int, optional): Number of hops.
+            (default: :obj:`1`)
         heads (int, optional): Number of multi-head-attentions.
             (default: :obj:`1`)
         concat (bool, optional): If set to :obj:`False`, the multi-head
@@ -108,23 +122,23 @@ class MultiHopGATConv(MessagePassing):
         self,
         in_channels: Union[int, Tuple[int, int]],
         out_channels: int,
-        n_hop: int,
+        hops: int = 1,
         heads: int = 1,
         concat: bool = True,
         negative_slope: float = 0.2,
         dropout: float = 0.0,
         add_self_loops: bool = True,
         edge_dim: Optional[int] = None,
-        fill_value: Union[float, Tensor, str] = 'mean',
+        fill_value: Union[float, Tensor, str] = "mean",
         bias: bool = True,
         **kwargs,
     ):
-        kwargs.setdefault('aggr', 'add')
+        kwargs.setdefault("aggr", "add")
         super().__init__(node_dim=0, **kwargs)
 
         self.in_channels = in_channels
         self.out_channels = out_channels
-        self.n_hop = n_hop
+        self.hops = hops
         self.heads = heads
         self.concat = concat
         self.negative_slope = negative_slope
@@ -135,42 +149,53 @@ class MultiHopGATConv(MessagePassing):
 
         # In case we are operating in bipartite graphs, we apply separate
         # transformations 'lin_src' and 'lin_dst' to source and target nodes:
+        self.lin = self.lin_src = self.lin_dst = None
         if isinstance(in_channels, int):
-            self.lin_src = Linear(in_channels, heads * out_channels,
-                                  bias=False, weight_initializer='glorot')
-            self.lin_dst = self.lin_src
+            self.lin = Linear(
+                in_channels,
+                heads * out_channels,
+                bias=False,
+                weight_initializer="glorot",
+            )
         else:
-            self.lin_src = Linear(in_channels[0], heads * out_channels, False,
-                                  weight_initializer='glorot')
-            self.lin_dst = Linear(in_channels[1], heads * out_channels, False,
-                                  weight_initializer='glorot')
+            self.lin_src = Linear(
+                in_channels[0], heads * out_channels, False, weight_initializer="glorot"
+            )
+            self.lin_dst = Linear(
+                in_channels[1], heads * out_channels, False, weight_initializer="glorot"
+            )
 
         # The learnable parameters to compute attention coefficients:
         self.att_src = Parameter(torch.Tensor(1, heads, out_channels))
         self.att_dst = Parameter(torch.Tensor(1, heads, out_channels))
-        self.att_gate = Parameter(torch.Tensor(1, heads, out_channels*2))
+        self.att_gate = Parameter(torch.Tensor(1, heads, out_channels * 2))
 
         if edge_dim is not None:
-            self.lin_edge = Linear(edge_dim, heads * out_channels, bias=False,
-                                   weight_initializer='glorot')
+            self.lin_edge = Linear(
+                edge_dim, heads * out_channels, bias=False, weight_initializer="glorot"
+            )
             self.att_edge = Parameter(torch.Tensor(1, heads, out_channels))
         else:
             self.lin_edge = None
-            self.register_parameter('att_edge', None)
+            self.register_parameter("att_edge", None)
 
         if bias and concat:
             self.bias = Parameter(torch.Tensor(heads * out_channels))
         elif bias and not concat:
             self.bias = Parameter(torch.Tensor(out_channels))
         else:
-            self.register_parameter('bias', None)
+            self.register_parameter("bias", None)
 
         self.reset_parameters()
 
     def reset_parameters(self):
         super().reset_parameters()
-        self.lin_src.reset_parameters()
-        self.lin_dst.reset_parameters()
+        if self.lin is not None:
+            self.lin.reset_parameters()
+        if self.lin_src is not None:
+            self.lin_src.reset_parameters()
+        if self.lin_dst is not None:
+            self.lin_dst.reset_parameters()
         if self.lin_edge is not None:
             self.lin_edge.reset_parameters()
         glorot(self.att_src)
@@ -178,13 +203,51 @@ class MultiHopGATConv(MessagePassing):
         glorot(self.att_edge)
         zeros(self.bias)
 
-    def forward(self, x: Union[Tensor, OptPairTensor], edge_index: Adj,
-                edge_attr: OptTensor = None, size: Size = None,
-                return_attention_weights=None):
-        # type: (Union[Tensor, OptPairTensor], Tensor, OptTensor, Size, NoneType) -> Tensor  # noqa
-        # type: (Union[Tensor, OptPairTensor], SparseTensor, OptTensor, Size, NoneType) -> Tensor  # noqa
-        # type: (Union[Tensor, OptPairTensor], Tensor, OptTensor, Size, bool) -> Tuple[Tensor, Tuple[Tensor, Tensor]]  # noqa
-        # type: (Union[Tensor, OptPairTensor], SparseTensor, OptTensor, Size, bool) -> Tuple[Tensor, SparseTensor]  # noqa
+    @overload
+    def forward(
+        self,
+        x: Union[Tensor, OptPairTensor],
+        edge_index: Adj,
+        edge_attr: OptTensor = None,
+        size: Size = None,
+        return_attention_weights: NoneType = None,
+    ) -> Tensor:
+        pass
+
+    @overload
+    def forward(  # noqa: F811
+        self,
+        x: Union[Tensor, OptPairTensor],
+        edge_index: Tensor,
+        edge_attr: OptTensor = None,
+        size: Size = None,
+        return_attention_weights: bool = None,
+    ) -> Tuple[Tensor, Tuple[Tensor, Tensor]]:
+        pass
+
+    @overload
+    def forward(  # noqa: F811
+        self,
+        x: Union[Tensor, OptPairTensor],
+        edge_index: SparseTensor,
+        edge_attr: OptTensor = None,
+        size: Size = None,
+        return_attention_weights: bool = None,
+    ) -> Tuple[Tensor, SparseTensor]:
+        pass
+
+    def forward(
+        self,
+        x: Union[Tensor, OptPairTensor],
+        edge_index: Adj,
+        edge_attr: OptTensor = None,
+        size: Size = None,
+        return_attention_weights: Optional[bool] = None,
+    ) -> Union[
+        Tensor,
+        Tuple[Tensor, Tuple[Tensor, Tensor]],
+        Tuple[Tensor, SparseTensor],
+    ]:
         r"""Runs the forward pass of the module.
         Args:
             return_attention_weights (bool, optional): If set to :obj:`True`,
@@ -205,14 +268,34 @@ class MultiHopGATConv(MessagePassing):
         # We first transform the input node features. If a tuple is passed, we
         # transform source and target node features via separate weights:
         if isinstance(x, Tensor):
-            assert x.dim() == 2, "Static graphs not supported in 'GATConv'"
-            x_src = x_dst = self.lin_src(x).view(-1, H, C)
+            assert x.dim() == 2, "Static graphs not supported in 'MultiHopGATConv'"
+
+            if self.lin is not None:
+                x_src = x_dst = self.lin(x).view(-1, H, C)
+            else:
+                # If the module is initialized as bipartite, transform source
+                # and destination node features separately:
+                assert self.lin_src is not None and self.lin_dst is not None
+                x_src = self.lin_src(x).view(-1, H, C)
+                x_dst = self.lin_dst(x).view(-1, H, C)
+
         else:  # Tuple of source and target node features:
             x_src, x_dst = x
-            assert x_src.dim() == 2, "Static graphs not supported in 'GATConv'"
-            x_src = self.lin_src(x_src).view(-1, H, C)
-            if x_dst is not None:
-                x_dst = self.lin_dst(x_dst).view(-1, H, C)
+            assert x_src.dim() == 2, "Static graphs not supported in 'MultiHopGATConv'"
+
+            if self.lin is not None:
+                # If the module is initialized as non-bipartite, we expect that
+                # source and destination node features have the same shape and
+                # that they their transformations are shared:
+                x_src = self.lin(x_src).view(-1, H, C)
+                if x_dst is not None:
+                    x_dst = self.lin(x_dst).view(-1, H, C)
+            else:
+                assert self.lin_src is not None and self.lin_dst is not None
+
+                x_src = self.lin_src(x_src).view(-1, H, C)
+                if x_dst is not None:
+                    x_dst = self.lin_dst(x_dst).view(-1, H, C)
 
         x = (x_src, x_dst)
 
@@ -233,8 +316,11 @@ class MultiHopGATConv(MessagePassing):
                 edge_index, edge_attr = remove_self_loops(
                     edge_index, edge_attr)
                 edge_index, edge_attr = add_self_loops(
-                    edge_index, edge_attr, fill_value=self.fill_value,
-                    num_nodes=num_nodes)
+                    edge_index,
+                    edge_attr,
+                    fill_value=self.fill_value,
+                    num_nodes=num_nodes,
+                )
             elif isinstance(edge_index, SparseTensor):
                 if self.edge_dim is None:
                     edge_index = torch_sparse.set_diag(edge_index)
@@ -242,18 +328,23 @@ class MultiHopGATConv(MessagePassing):
                     raise NotImplementedError(
                         "The usage of 'edge_attr' and 'add_self_loops' "
                         "simultaneously is currently not yet supported for "
-                        "'edge_index' in a 'SparseTensor' form")
+                        "'edge_index' in a 'SparseTensor' form"
+                    )
 
         # edge_updater_type: (alpha: OptPairTensor, edge_attr: OptTensor)
-        alpha = self.edge_updater(edge_index, alpha=alpha, edge_attr=edge_attr)
+        alpha = self.edge_updater(
+            edge_index, alpha=alpha, edge_attr=edge_attr, size=size
+        )
 
         # propagate_type: (x: OptPairTensor, alpha: Tensor)
-        out = self.propagate(edge_index, x=x, origin_x=x,
-                             alpha=alpha, size=size)
+        out, coeff = self.propagate(
+            edge_index, x=x, h=x, alpha=alpha, size=size)
 
-        for _ in range(self.n_hop-1):
+        # run multi-hop propagation
+        for _ in range(self.hops - 1):
             out = self.propagate(
-                edge_index, x=out, origin_x=x, alpha=alpha, size=size)
+                edge_index, x=out, h=x, alpha=alpha, coeff=coeff, size=size
+            )
 
         if self.concat:
             out = out.view(-1, self.heads * self.out_channels)
@@ -272,13 +363,19 @@ class MultiHopGATConv(MessagePassing):
                 else:
                     return out, (edge_index, alpha)
             elif isinstance(edge_index, SparseTensor):
-                return out, edge_index.set_value(alpha, layout='coo')
+                return out, edge_index.set_value(alpha, layout="coo")
         else:
             return out
 
-    def edge_update(self, alpha_j: Tensor, alpha_i: OptTensor,
-                    edge_attr: OptTensor, index: Tensor, ptr: OptTensor,
-                    size_i: Optional[int]) -> Tensor:
+    def edge_update(
+        self,
+        alpha_j: Tensor,
+        alpha_i: OptTensor,
+        edge_attr: OptTensor,
+        index: Tensor,
+        ptr: OptTensor,
+        size_i: Optional[int],
+    ) -> Tensor:
         # Given edge-level attention coefficients for source and target nodes,
         # we simply need to sum them up to "emulate" concatenation:
         alpha = alpha_j if alpha_i is None else alpha_j + alpha_i
@@ -297,15 +394,30 @@ class MultiHopGATConv(MessagePassing):
         alpha = F.dropout(alpha, p=self.dropout, training=self.training)
         return alpha
 
-    def message(self, x_j: Tensor, origin_x_j: Tensor, alpha: Tensor) -> Tensor:
-        ret = alpha.unsqueeze(-1) * x_j
-        ret = ret.relu()
-        coeff = (torch.cat([origin_x_j, ret], dim=-1) *
-                 self.att_gate).sum(dim=-1, keepdim=True)
-        coeff = torch.sigmoid(coeff)
-        ret = coeff * ret + (1-coeff) * origin_x_j
-        return ret
+    def message(self, x_j: Tensor, alpha: Tensor) -> Tensor:
+        return alpha.unsqueeze(-1) * x_j
+
+    def update(
+        self,
+        inputs: Tensor,
+        h: Tensor,
+        coeff: Tensor = None,
+    ) -> Tensor:
+        r"""Updates node embeddings"""
+        h_join = (h[0] + h[1]) / 2
+        if coeff is None:
+            coeff = (torch.cat([h_join, inputs], dim=-1) * self.att_gate).sum(
+                dim=-1, keepdim=True
+            )
+            coeff = torch.sigmoid(coeff)
+            inputs = (1 - coeff) * inputs + coeff * h_join
+
+            return inputs, coeff
+
+        return (1 - coeff) * inputs + coeff * h_join
 
     def __repr__(self) -> str:
-        return (f'{self.__class__.__name__}({self.in_channels}, '
-                f'{self.out_channels}, heads={self.heads})')
+        return (
+            f"{self.__class__.__name__}({self.in_channels}, "
+            f"{self.out_channels}, hops={self.hops}, heads={self.heads})"
+        )
