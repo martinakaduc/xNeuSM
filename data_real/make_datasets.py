@@ -15,8 +15,7 @@ RAW_DATASETS_PATH = "./raw_datasets"
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Synthetic graphs")
-    parser.add_argument("--cont", action="store_true",
-                        help="Continue generating")
+    parser.add_argument("--cont", action="store_true", help="Continue generating")
     parser.add_argument(
         "--num_subgraphs", default=2000, type=int, help="Number of subgraphs"
     )
@@ -37,8 +36,7 @@ def ensure_path(path):
 def read_dataset(path, ds_name):
     ds_dir = os.path.join(path, ds_name)
 
-    node_labels_file = open(os.path.join(
-        ds_dir, ds_name + ".node_labels"), "r")
+    node_labels_file = open(os.path.join(ds_dir, ds_name + ".node_labels"), "r")
     edges_file = open(os.path.join(ds_dir, ds_name + ".edges"), "r")
     graph_idx_file = open(os.path.join(ds_dir, ds_name + ".graph_idx"), "r")
 
@@ -49,8 +47,7 @@ def read_dataset(path, ds_name):
     label_set = set(node_labels)
     # Label start from 1
     label_mapping = {x: i + 1 for i, x in enumerate(label_set)}
-    node_labels = [(i, {"label": label_mapping[x]})
-                   for i, x in enumerate(node_labels)]
+    node_labels = [(i, {"label": label_mapping[x]}) for i, x in enumerate(node_labels)]
     total_graph.add_nodes_from(node_labels)
 
     edges = edges_file.read().strip().split("\n")
@@ -62,8 +59,7 @@ def read_dataset(path, ds_name):
     total_graph.add_edges_from(edges)
 
     nid_to_transaction = graph_idx_file.read().strip().split("\n")
-    nid_to_transaction = {
-        i: int(x) - 1 for i, x in enumerate(nid_to_transaction)}
+    nid_to_transaction = {i: int(x) - 1 for i, x in enumerate(nid_to_transaction)}
 
     transaction_ids = set(nid_to_transaction.values())
     print("Processing transactions...")
@@ -97,8 +93,7 @@ def save_per_source(graph_id, H, iso_subgraphs, noniso_subgraphs, dataset_path):
     # Save subgraphs
     iso_subgraph_file = os.path.join(subgraph_path, "iso_subgraphs.lg")
     noniso_subgraph_file = os.path.join(subgraph_path, "noniso_subgraphs.lg")
-    iso_subgraph_mapping_file = os.path.join(
-        subgraph_path, "iso_subgraphs_mapping.lg")
+    iso_subgraph_mapping_file = os.path.join(subgraph_path, "iso_subgraphs_mapping.lg")
     noniso_subgraph_mapping_file = os.path.join(
         subgraph_path, "noniso_subgraphs_mapping.lg"
     )
@@ -140,8 +135,7 @@ def save_per_source(graph_id, H, iso_subgraphs, noniso_subgraphs, dataset_path):
         shuffle(list_nodes)
 
         for node_idx, node_emb in enumerate(list_nodes):
-            nisf.write("v {} {}\n".format(
-                node_idx, S.nodes[node_emb]["label"]))
+            nisf.write("v {} {}\n".format(node_idx, S.nodes[node_emb]["label"]))
             if not S.nodes[node_emb]["modified"]:
                 nismf.write("v {} {}\n".format(node_idx, node_emb))
             node_mapping[node_emb] = node_idx
@@ -278,14 +272,11 @@ def add_random_edges(current_graph, NE, min_edges=61, max_edges=122):
         num_edges = np.random.randint(min_edges, max_edges + 1)
 
         while current_graph.number_of_edges() < num_edges:
-            old_1, old_2 = np.random.choice(
-                current_graph.nodes, 2, replace=False)
+            old_1, old_2 = np.random.choice(current_graph.nodes, 2, replace=False)
             while current_graph.has_edge(old_1, old_2):
-                old_1, old_2 = np.random.choice(
-                    current_graph.nodes, 2, replace=False)
+                old_1, old_2 = np.random.choice(current_graph.nodes, 2, replace=False)
             edge_label = np.random.randint(1, NE + 1)
-            current_graph.add_edges_from(
-                [(old_1, old_2, {"label": edge_label})])
+            current_graph.add_edges_from([(old_1, old_2, {"label": edge_label})])
             current_graph.nodes[old_1]["modified"] = True
             current_graph.nodes[old_2]["modified"] = True
 
@@ -320,8 +311,7 @@ def add_random_nodes(
 
 
 def random_modify(graph, NN, NE, node_start_id, min_edges, max_edges):
-    num_steps = np.random.randint(
-        1, graph.number_of_nodes() + graph.number_of_edges())
+    num_steps = np.random.randint(1, graph.number_of_nodes() + graph.number_of_edges())
     modify_type = None
 
     while num_steps > 0:
@@ -392,10 +382,8 @@ def generate_noniso_subgraph(
     if node_ratio > 1:
         node_ratio = 1
 
-    min_edges = int(no_of_nodes * min(no_of_nodes -
-                    1, avg_degree - std_degree) / 2)
-    max_edges = int(no_of_nodes * min(no_of_nodes -
-                    1, avg_degree + std_degree) / 2)
+    min_edges = int(no_of_nodes * min(no_of_nodes - 1, avg_degree - std_degree) / 2)
+    max_edges = int(no_of_nodes * min(no_of_nodes - 1, avg_degree + std_degree) / 2)
     subgraph = None
     iteration = 0
 
@@ -496,8 +484,7 @@ def generate_batch(start_idx, stop_idx, number_source, dataset_path, *args, **kw
         graph, iso_subgraphs, noniso_subgraphs = generate_one_sample(
             idx, *args, **kwargs
         )
-        save_per_source(idx, graph, iso_subgraphs,
-                        noniso_subgraphs, dataset_path)
+        save_per_source(idx, graph, iso_subgraphs, noniso_subgraphs, dataset_path)
 
 
 def generate_dataset(dataset_path, is_continue, number_source, *args, **kwargs):
@@ -519,8 +506,7 @@ def generate_dataset(dataset_path, is_continue, number_source, *args, **kwargs):
             list_idx = (
                 [(remaining_sample[0], remaining_sample[gap_idx[0]])]
                 + [
-                    (remaining_sample[gap_idx[i]],
-                     remaining_sample[gap_idx[i + 1]])
+                    (remaining_sample[gap_idx[i]], remaining_sample[gap_idx[i + 1]])
                     for i in range(gap_idx.shape[0] - 1)
                 ]
                 + [(remaining_sample[gap_idx[-1]], remaining_sample[-1] + 1)]
@@ -602,8 +588,7 @@ def calculate_ds_attr(graph_ds, total_graph, num_subgraphs):
     attr_dict["avg_source_size"] = mean_size
     attr_dict["std_source_size"] = std_size
 
-    list_avg_degree = [e * 2 / n for n,
-                       e in zip(list_source_node, list_source_edge)]
+    list_avg_degree = [e * 2 / n for n, e in zip(list_source_node, list_source_edge)]
     mean_degree, std_degree = np.mean(list_avg_degree, axis=0), np.std(
         list_avg_degree, axis=0
     )

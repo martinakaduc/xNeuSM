@@ -56,14 +56,11 @@ if __name__ == "__main__":
     for dataset in ["KKI", "COX2", "DBLP-v1", "COX2_MD", "MSRC-21", "DHFR"]:
         # Find the runtime file starting with the dataset name
         files = [f"{dataset}-dense.csv", f"{dataset}-nondense.csv"]
-        files = [
-            file for file in list_runtime_files if file in files]
+        files = [file for file in list_runtime_files if file in files]
         files.sort(key=lambda x: x.split("-")[-1], reverse=True)
         num_subplots = len(files)
         # Delete the runtime file starting with the dataset name
-        list_runtime_files = [
-            file for file in list_runtime_files if file not in files
-        ]
+        list_runtime_files = [file for file in list_runtime_files if file not in files]
 
         for file in files:
             df_name = (
@@ -81,8 +78,7 @@ if __name__ == "__main__":
                     # Check runtime is nan or not
                     if np.isnan(df[setting][i]):
                         runtime_df["settings"][-1] = (
-                            runtime_df["settings"][-1][:-4] +
-                            "|V_{\mathcal{T}}|]$"
+                            runtime_df["settings"][-1][:-4] + "|V_{\mathcal{T}}|]$"
                         )
 
                     runtime_df["settings"].append(setting_map[setting])
@@ -93,17 +89,20 @@ if __name__ == "__main__":
 
     # Draw line plot
     # Header: algo, <20, 20-40, 40-60, >60
-    fig, axes = plt.subplots(
-        figsize=(6 * 3, 3 * 3), ncols=3, nrows=3)
+    fig, axes = plt.subplots(figsize=(6 * 3, 3 * 3), ncols=3, nrows=3)
 
     # 3x3 plot
     idx = 0
     for name, df in list_df.items():
         sns.lineplot(
-            data=df, x="settings", y="runtime", hue="algo", ax=axes[idx // 3][idx % 3], marker="o"
+            data=df,
+            x="settings",
+            y="runtime",
+            hue="algo",
+            ax=axes[idx // 3][idx % 3],
+            marker="o",
         )
-        axes[idx // 3][idx %
-                       3].tick_params(axis="both", which="major", labelsize=14)
+        axes[idx // 3][idx % 3].tick_params(axis="both", which="major", labelsize=14)
         # axes[idx].tick_params(axis='x', rotation=10)
         axes[idx // 3][idx % 3].set_xlabel("", fontsize=14)
         axes[idx // 3][idx % 3].set_ylabel("Runtime $(s)$", fontsize=14)
@@ -127,8 +126,12 @@ if __name__ == "__main__":
     # Load each performance results
     list_performance_files = os.listdir(performance_folder)
     list_performance_files = [
-        "KKI.csv", "COX2.csv", "COX2_MD.csv",
-        "DHFR.csv", "DBLP-v1.csv", "MSRC-21.csv"
+        "KKI.csv",
+        "COX2.csv",
+        "COX2_MD.csv",
+        "DHFR.csv",
+        "DBLP-v1.csv",
+        "MSRC-21.csv",
     ]
 
     performance_df = {
@@ -181,15 +184,18 @@ if __name__ == "__main__":
     fig, axes = plt.subplots(figsize=(8 * 2, 4 * 2), ncols=2, nrows=2)
     for idx, metric in enumerate(["ROC AUC", "PR AUC", "F1 score", "Accuracy"]):
         sns.barplot(
-            data=performance_df, x="dataset", y=metric, hue="algo", ax=axes[idx//2][idx % 2]
+            data=performance_df,
+            x="dataset",
+            y=metric,
+            hue="algo",
+            ax=axes[idx // 2][idx % 2],
         )
-        axes[idx//2][idx %
-                     2].tick_params(axis="both", which="major", labelsize=14)
-        axes[idx//2][idx % 2].tick_params(axis="x")
-        axes[idx//2][idx % 2].set_ylabel(metric, fontsize=14)
-        axes[idx//2][idx % 2].set_xlabel("")
-        axes[idx//2][idx % 2].set_ylim(0.5, 1)
-        axes[idx//2][idx % 2].get_legend().set_visible(False)
+        axes[idx // 2][idx % 2].tick_params(axis="both", which="major", labelsize=14)
+        axes[idx // 2][idx % 2].tick_params(axis="x")
+        axes[idx // 2][idx % 2].set_ylabel(metric, fontsize=14)
+        axes[idx // 2][idx % 2].set_xlabel("")
+        axes[idx // 2][idx % 2].set_ylim(0.5, 1)
+        axes[idx // 2][idx % 2].get_legend().set_visible(False)
     handles, labels = axes[0][0].get_legend_handles_labels()
 
     fig.legend(
@@ -248,8 +254,7 @@ if __name__ == "__main__":
             ax=axes[row_idx][col_idx],
             marker="o",
         )
-        axes[row_idx][col_idx].tick_params(
-            axis="both", which="major", labelsize=14)
+        axes[row_idx][col_idx].tick_params(axis="both", which="major", labelsize=14)
         axes[row_idx][col_idx].set_xlabel("Threshold", fontsize=14)
         axes[row_idx][col_idx].set_ylabel(metric, fontsize=14)
         axes[row_idx][col_idx].set_ylim(0.5, 1)
