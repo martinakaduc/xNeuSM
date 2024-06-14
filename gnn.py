@@ -49,11 +49,15 @@ class gnn(torch.nn.Module):
 
         self.FC = nn.ModuleList(
             [
-                nn.Linear(self.layers1[-1], d_FC_layer)
-                if i == 0
-                else nn.Linear(d_FC_layer, 1)
-                if i == n_FC_layer - 1
-                else nn.Linear(d_FC_layer, d_FC_layer)
+                (
+                    nn.Linear(self.layers1[-1], d_FC_layer)
+                    if i == 0
+                    else (
+                        nn.Linear(d_FC_layer, 1)
+                        if i == n_FC_layer - 1
+                        else nn.Linear(d_FC_layer, d_FC_layer)
+                    )
+                )
                 for i in range(n_FC_layer)
             ]
         )
