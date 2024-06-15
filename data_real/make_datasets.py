@@ -1,10 +1,11 @@
 import argparse
 import json
 import os
+import signal
 from functools import reduce
 from multiprocessing import Process
 from random import choice, seed, shuffle
-
+from contextlib import contextmanager
 import networkx as nx
 import numpy as np
 
@@ -12,7 +13,17 @@ from tqdm import tqdm
 
 RAW_DATASETS_PATH = "./raw_datasets"
 
-
+@contextmanager
+def time_limit(seconds):
+    def signal_handler(signum, frame):
+        raise Exception("Timed out!")
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        
 def parse_args():
     parser = argparse.ArgumentParser(description="Synthetic graphs")
     parser.add_argument("--cont", action="store_true", help="Continue generating")
@@ -435,21 +446,30 @@ def generate_noniso_subgraph(
     )
 
     retry = 0
-    while graph_matcher.subgraph_is_isomorphic():
-        subgraph, graph_nodes = random_modify(
-            subgraph,
-            number_label_node,
-            number_label_edge,
-            graph_nodes,
-            min_edges,
-            max_edges,
-        )
-        graph_matcher = nx.algorithms.isomorphism.GraphMatcher(
-            graph, subgraph, node_match=node_match, edge_match=edge_match
-        )
-        retry += 1
-        if retry > 10:
-            return None
+    while True:
+        try:
+            with time_limit(10):
+                subgraph_is_isomorphic = graph_matcher.subgraph_is_isomorphic()
+        except:
+            subgraph_is_isomorphic = False
+            
+        if subgraph_is_isomorphic:
+            subgraph, graph_nodes = random_modify(
+                subgraph,
+                number_label_node,
+                number_label_edge,
+                graph_nodes,
+                min_edges,
+                max_edges,
+            )
+            graph_matcher = nx.algorithms.isomorphism.GraphMatcher(
+                graph, subgraph, node_match=node_match, edge_match=edge_match
+            )
+            retry += 1
+            if retry > 2:
+                return None
+        else:
+            break
 
     return subgraph
 
