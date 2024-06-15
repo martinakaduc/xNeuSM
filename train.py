@@ -174,7 +174,8 @@ def main(args):
         test_pred = []
 
         model.train()
-        for sample in tqdm(train_dataloader):
+        pbar = tqdm(train_dataloader)
+        for sample in pbar:
             model.zero_grad()
             H, A1, A2, M, S, Y, V, _ = sample
             H, A1, A2, M, S, Y, V = (
@@ -197,7 +198,7 @@ def main(args):
             optimizer.step()
 
             # Print loss at the end of tqdm bar
-            tqdm.write("Loss: %.4f" % loss.data.cpu().item())
+            pbar.set_postfix_str("Loss: %.4f" % loss.data.cpu().item())
 
             # Collect loss, true label and predicted label
             train_losses.append(loss.data.cpu().item())
