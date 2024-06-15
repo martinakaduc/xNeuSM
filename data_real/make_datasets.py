@@ -554,8 +554,14 @@ def separate_graphs(total_graph, transaction_by_id):
     for gid in transaction_by_id:
         G = total_graph.subgraph(transaction_by_id[gid])
         mapping = dict(zip(G, range(G.number_of_nodes())))
-        separeted_graphs[gid] = nx.relabel_nodes(G, mapping)
-
+        source_graph = nx.relabel_nodes(G, mapping)
+        unique_labels = set(nx.get_node_attributes(source_graph, "label").values())
+        label_mapping = {x: i + 1 for i, x in enumerate(unique_labels)}
+        for nid in source_graph.nodes:
+            source_graph.nodes[nid]["label"] = label_mapping[source_graph.nodes[nid]["label"]]
+             
+        separeted_graphs[gid] = source_graph
+        
     return separeted_graphs
 
 
