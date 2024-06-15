@@ -434,6 +434,7 @@ def generate_noniso_subgraph(
         graph, subgraph, node_match=node_match, edge_match=edge_match
     )
 
+    retry = 0
     while graph_matcher.subgraph_is_isomorphic():
         subgraph, graph_nodes = random_modify(
             subgraph,
@@ -446,6 +447,9 @@ def generate_noniso_subgraph(
         graph_matcher = nx.algorithms.isomorphism.GraphMatcher(
             graph, subgraph, node_match=node_match, edge_match=edge_match
         )
+        retry += 1
+        if retry > 10:
+            return None
 
     return subgraph
 
@@ -455,16 +459,19 @@ def generate_subgraphs(graph, number_subgraph_per_source, *args, **kwargs):
     list_noniso_subgraphs = []
 
     for _ in tqdm(range(number_subgraph_per_source)):
-        no_of_nodes = np.random.randint(2, graph.number_of_nodes() + 1)
         prob = np.random.randint(0, 2)
         if prob == 1:
+            no_of_nodes = np.random.randint(2, graph.number_of_nodes() + 1)
             list_iso_subgraphs.append(
                 generate_iso_subgraph(graph, no_of_nodes, *args, **kwargs)
             )
         else:
-            list_noniso_subgraphs.append(
-                generate_noniso_subgraph(graph, no_of_nodes, *args, **kwargs)
-            )
+            no_of_nodes = np.random.randint(2, graph.number_of_nodes() + 1)
+            non_iso_subgraph = generate_noniso_subgraph(graph, no_of_nodes, *args, **kwargs)
+            while non_iso_subgraph is None:
+                no_of_nodes = np.random.randint(2, graph.number_of_nodes() + 1)
+                non_iso_subgraph = generate_noniso_subgraph(graph, no_of_nodes, *args, **kwargs)
+            list_noniso_subgraphs.append(non_iso_subgraph)
 
     return list_iso_subgraphs, list_noniso_subgraphs
 
