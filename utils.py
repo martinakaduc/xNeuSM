@@ -4,6 +4,7 @@ import networkx as nx
 import numpy as np
 import torch
 import torch.nn as nn
+import random
 from matplotlib import pyplot as plt
 
 def set_seed(seed):
