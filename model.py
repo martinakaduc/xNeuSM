@@ -19,22 +19,21 @@ class GLeMa(torch.nn.Module):
         # Embedding
         h = self.W_h(x)
         h = h.view(h.size(0), -1, self.nhead, self.hidden_dim)
-        h = h.permute(0, 2, 1, 3)
         
         # Attention
-        e = torch.einsum("bijl,bikl->bijk", (torch.matmul(h, self.W_e), h))
+        e = torch.einsum("bjil,bkil->bjik", (torch.matmul(h, self.W_e), h))
         if not self.directed:
-            e = e + e.permute((0, 1, 3, 2))
+            e = e + e.permute((0, 3, 2, 1))
             
-        attention = e * (adj > 0).unsqueeze(1).repeat(1, self.nhead, 1, 1)
-        attention = F.softmax(attention, dim=-2)
-        attention = attention * adj.unsqueeze(1).repeat(1, self.nhead, 1, 1)
+        attention = e * (adj > 0).unsqueeze(2).repeat(1, 1, self.nhead, 1)
+        attention = F.softmax(attention, dim=1)
+        attention = attention * adj.unsqueeze(2).repeat(1, 1, self.nhead, 1)
 
         # Multi-hop attention
         z = h
         beta = None
         for _ in range(self.nhop):
-            az = F.relu(torch.einsum("baij,bajk->baik", (attention, z)))
+            az = F.relu(torch.einsum("biaj,bjak->biak", (attention, z)))
             if beta is None:
                 beta = torch.sigmoid(self.W_beta(torch.cat([h, az], -1))).repeat(
                     1, 1, 1, self.hidden_dim
@@ -42,11 +41,11 @@ class GLeMa(torch.nn.Module):
             z = beta * h + (1 - beta) * az
         
         # Output
-        z = z.permute(0, 2, 1, 3).reshape(z.size(0), -1, self.hidden_dim * self.nhead)
+        z = z.reshape(z.size(0), -1, self.hidden_dim * self.nhead)
         # z = self.W_o(F.relu(z))
 
         if get_attention:
-            return z, attention.mean(1)
+            return z, attention.mean(2)
         return z
 
 
