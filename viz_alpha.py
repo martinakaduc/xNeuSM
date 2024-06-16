@@ -1,8 +1,5 @@
-import os
-
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import seaborn as sns
 from tueplots import bundles
 
@@ -18,7 +15,8 @@ if __name__ == "__main__":
 
     for alpha in list_alpha:
         y = fn(alpha, k)
-        plt.plot(k, y, label=f"$\\alpha={round(alpha, 1)}$", marker="o", markersize=2)
+        plt.plot(
+            k, y, label=f"$\\alpha={round(alpha, 1)}$", marker="o", markersize=2)
 
     plt.legend(ncol=2)
     plt.xlabel("$K$")

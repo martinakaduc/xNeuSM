@@ -1,17 +1,13 @@
-import argparse
 import os
 import pickle
 import time
 from collections import defaultdict
-from datetime import datetime
 
-import networkx as nx
 import numpy as np
 import torch
 import utils
 from dataset import BaseDataset, collate_fn
 from model import GLeMaNet
-from scipy.spatial import distance_matrix
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -42,6 +38,12 @@ def eval_mapping(groundtruth, predict_list, predict_prob):
 
 
 def evaluate(args):
+    data_path = os.path.join(args.data_path, args.dataset)
+    args.train_keys = os.path.join(data_path, args.train_keys)
+    args.test_keys = os.path.join(data_path, args.test_keys)
+    result_dir = utils.ensure_dir(args.result_dir, args)
+    result_file = f"result_matching_{args.test_keys[9:-4]}.csv"
+
     with open(args.test_keys, "rb") as fp:
         test_keys = pickle.load(fp)
         # Only use isomorphism subgraphs for mapping testing
@@ -143,7 +145,8 @@ def evaluate(args):
                 }
             )
 
-            results = eval_mapping(gt_mapping, sorted_predict_mapping, pred_mapping)
+            results = eval_mapping(
+                gt_mapping, sorted_predict_mapping, pred_mapping)
             list_results.append(results)
 
     end = time.time()
@@ -155,10 +158,7 @@ def evaluate(args):
     print(avg_results)
 
     with open(
-        os.path.join(
-            args.result_dir,
-            f"{args.dataset}_result_matching{'_directed' if args.directed else ''}.csv",
-        ),
+        os.path.join(result_dir, result_file),
         "w",
         encoding="utf-8",
     ) as f:
@@ -171,100 +171,7 @@ def evaluate(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--ckpt",
-        "-c",
-        help="checkpoint for GLeMaNet",
-        type=str,
-        default="model/best_large_30_20.pt",
-    )
-    parser.add_argument("--dataset", help="dataset", type=str, default="tiny")
-    parser.add_argument(
-        "--num_workers", help="number of workers", type=int, default=os.cpu_count()
-    )
-    parser.add_argument(
-        "--confidence", help="isomorphism threshold", type=float, default=0.5
-    )
-    parser.add_argument(
-        "--mapping_threshold", help="mapping threshold", type=float, default=1e-5
-    )
-    parser.add_argument("--ngpu", help="number of gpu", type=int, default=1)
-    parser.add_argument("--batch_size", help="batch_size", type=int, default=32)
-    parser.add_argument(
-        "--embedding_dim",
-        help="node embedding dim aka number of distinct node label",
-        type=int,
-        default=20,
-    )
-    parser.add_argument(
-        "--n_graph_layer", help="number of GNN layer", type=int, default=4
-    )
-    parser.add_argument(
-        "--d_graph_layer", help="dimension of GNN layer", type=int, default=140
-    )
-    parser.add_argument("--n_FC_layer", help="number of FC layer", type=int, default=4)
-    parser.add_argument(
-        "--d_FC_layer", help="dimension of FC layer", type=int, default=128
-    )
-    parser.add_argument("--dropout_rate", help="dropout_rate", type=float, default=0.0)
-    parser.add_argument("--al_scale", help="attn_loss scale", type=float, default=1.0)
-    parser.add_argument(
-        "--tatic",
-        help="tactic of defining number of hops",
-        type=str,
-        default="static",
-        choices=["static", "cont", "jump"],
-    )
-    parser.add_argument("--directed", action="store_true", help="directed graph")
-    parser.add_argument("--nhop", help="number of hops", type=int, default=1)
-    parser.add_argument("--nhead", help="number of attention heads", type=int, default=1)
-    parser.add_argument(
-        "--branch",
-        help="choosing branch",
-        type=str,
-        default="both",
-        choices=["both", "left", "right"],
-    )
-    parser.add_argument(
-        "--data_path", help="path to the data", type=str, default="data_processed"
-    )
-    parser.add_argument(
-        "--result_dir",
-        help="save directory of model parameter",
-        type=str,
-        default="results/",
-    )
-    parser.add_argument(
-        "--train_keys", help="train keys", type=str, default="train_keys.pkl"
-    )
-    parser.add_argument(
-        "--test_keys", help="test keys", type=str, default="test_keys.pkl"
-    )
-
-    args = parser.parse_args()
+    args = utils.parse_args()
     print(args)
-
-    ngpu = args.ngpu
-    batch_size = args.batch_size
-    args.data_path = os.path.join(args.data_path, args.dataset)
-    args.train_keys = os.path.join(args.data_path, args.train_keys)
-    args.test_keys = os.path.join(args.data_path, args.test_keys)
-    result_dir = os.path.join(
-        args.result_dir, "%s_%s_%d" % (args.dataset, args.tatic, args.nhop)
-    )
-    if args.branch != "both":
-        result_dir += "_" + args.branch
-    ds_ckpt = args.ckpt.split("/")[1].split("_")
-    if len(ds_ckpt) > 4:
-        ds_ckpt = "_".join(ds_ckpt[:2])
-    else:
-        ds_ckpt = "_".join(ds_ckpt[:1])
-    if args.dataset != ds_ckpt:
-        result_dir += "_" + ds_ckpt
-    args.result_dir = result_dir
-
-    if not os.path.isdir(result_dir):
-        os.system("mkdir " + result_dir)
 
     evaluate(args)

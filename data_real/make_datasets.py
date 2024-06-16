@@ -13,17 +13,20 @@ from tqdm import tqdm
 
 RAW_DATASETS_PATH = "./raw_datasets"
 
+
 @contextmanager
 def time_limit(seconds):
     def signal_handler(signum, frame):
         raise Exception("Timed out!")
+
     signal.signal(signal.SIGALRM, signal_handler)
     signal.alarm(seconds)
     try:
         yield
     finally:
         signal.alarm(0)
-        
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Synthetic graphs")
     parser.add_argument("--cont", action="store_true", help="Continue generating")
@@ -452,7 +455,7 @@ def generate_noniso_subgraph(
                 subgraph_is_isomorphic = graph_matcher.subgraph_is_isomorphic()
         except:
             subgraph_is_isomorphic = False
-            
+
         if subgraph_is_isomorphic:
             subgraph, graph_nodes = random_modify(
                 subgraph,
@@ -484,15 +487,19 @@ def generate_subgraphs(graph, number_subgraph_per_source, *args, **kwargs):
             no_of_nodes = np.random.randint(2, graph.number_of_nodes() + 1)
             prob = np.random.randint(0, 2)
             if prob == 1:
-                generated_subgraph = generate_iso_subgraph(graph, no_of_nodes, *args, **kwargs)
+                generated_subgraph = generate_iso_subgraph(
+                    graph, no_of_nodes, *args, **kwargs
+                )
             else:
-                generated_subgraph = generate_noniso_subgraph(graph, no_of_nodes, *args, **kwargs)
-        
+                generated_subgraph = generate_noniso_subgraph(
+                    graph, no_of_nodes, *args, **kwargs
+                )
+
         if prob == 1:
             list_iso_subgraphs.append(generated_subgraph)
         else:
             list_noniso_subgraphs.append(generated_subgraph)
-            
+
     return list_iso_subgraphs, list_noniso_subgraphs
 
 
@@ -585,10 +592,12 @@ def separate_graphs(total_graph, transaction_by_id):
         unique_labels = set(nx.get_node_attributes(source_graph, "label").values())
         label_mapping = {x: i + 1 for i, x in enumerate(unique_labels)}
         for nid in source_graph.nodes:
-            source_graph.nodes[nid]["label"] = label_mapping[source_graph.nodes[nid]["label"]]
-             
+            source_graph.nodes[nid]["label"] = label_mapping[
+                source_graph.nodes[nid]["label"]
+            ]
+
         separeted_graphs[gid] = source_graph
-        
+
     return separeted_graphs
 
 

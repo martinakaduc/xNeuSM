@@ -2,16 +2,20 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class GLeMa(torch.nn.Module):
-    def __init__(self, n_in_feature, n_out_feature, nhop, nhead=1, directed=False, gpu=False):
+    def __init__(
+        self, n_in_feature, n_out_feature, nhop, nhead=1, directed=False
+    ):
         super(GLeMa, self).__init__()
-        self.W_h = nn.Linear(n_in_feature, n_out_feature*nhead)
-        self.W_e = nn.Parameter(torch.zeros(size=(n_out_feature, n_out_feature)))
+        self.W_h = nn.Linear(n_in_feature, n_out_feature * nhead)
+        self.W_e = nn.Parameter(torch.zeros(
+            size=(n_out_feature, n_out_feature)))
         self.W_beta = nn.Linear(n_out_feature * 2, 1)
-        self.W_o = nn.Linear(n_out_feature*nhead, n_out_feature, bias=False)
+        self.W_o = nn.Linear(n_out_feature * nhead, n_out_feature, bias=False)
 
         self.nhop = nhop
-        self.nhead= nhead
+        self.nhead = nhead
         self.hidden_dim = n_out_feature
         self.directed = directed
 
@@ -19,12 +23,12 @@ class GLeMa(torch.nn.Module):
         # Embedding
         h = self.W_h(x)
         h = h.view(h.size(0), -1, self.nhead, self.hidden_dim)
-        
+
         # Attention
         e = torch.einsum("bjil,bkil->bjik", (torch.matmul(h, self.W_e), h))
         if not self.directed:
             e = e + e.permute((0, 3, 2, 1))
-            
+
         attention = e * (adj > 0).unsqueeze(2).repeat(1, 1, self.nhead, 1)
         attention = F.softmax(attention, dim=1)
         attention = attention * adj.unsqueeze(2).repeat(1, 1, self.nhead, 1)
@@ -38,7 +42,7 @@ class GLeMa(torch.nn.Module):
         for _ in range(self.nhop):
             az = F.relu(torch.einsum("biaj,bjak->biak", (attention, z)))
             z = beta * h + (1 - beta) * az
-        
+
         # Output
         z = z.reshape(z.size(0), -1, self.nhead * self.hidden_dim)
         z = self.W_o(z)
@@ -84,8 +88,7 @@ class GLeMaNet(torch.nn.Module):
                     n_out_feature=self.layers1[i + 1],
                     nhop=cal_nhop(i),
                     nhead=args.nhead,
-                    directed=args.directed,
-                    gpu=(args.ngpu > 0),
+                    directed=args.directed
                 )
                 for i in range(len(self.layers1) - 1)
             ]
@@ -106,7 +109,8 @@ class GLeMaNet(torch.nn.Module):
             ]
         )
 
-        self.embede = nn.Linear(2 * args.embedding_dim, d_graph_layer, bias=False)
+        self.embede = nn.Linear(2 * args.embedding_dim,
+                                d_graph_layer, bias=False)
         self.theta = args.al_scale
 
     def embede_graph(self, X):
@@ -145,7 +149,8 @@ class GLeMaNet(torch.nn.Module):
         for k in range(len(self.FC)):
             if k < len(self.FC) - 1:
                 c_hs = self.FC[k](c_hs)
-                c_hs = F.dropout(c_hs, p=self.dropout_rate, training=self.training)
+                c_hs = F.dropout(c_hs, p=self.dropout_rate,
+                                 training=self.training)
                 c_hs = F.relu(c_hs)
             else:
                 c_hs = self.FC[k](c_hs)

@@ -10,8 +10,6 @@ from scipy.spatial import distance_matrix
 from torch.utils.data import Dataset
 from torch.utils.data.sampler import Sampler
 
-random.seed(42)
-
 
 def onehot_encoding_node(m, embedding_dim):
     H = []
