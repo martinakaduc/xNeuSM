@@ -218,6 +218,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--directed", action="store_true", help="directed graph")
     parser.add_argument("--nhop", help="number of hops", type=int, default=1)
+    parser.add_argument("--nhead", help="number of attention heads", type=int, default=1)
     parser.add_argument(
         "--branch",
         help="choosing branch",

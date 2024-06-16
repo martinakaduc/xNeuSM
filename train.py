@@ -39,6 +39,7 @@ parser.add_argument(
 )
 parser.add_argument("--directed", action="store_true", help="directed graph")
 parser.add_argument("--nhop", help="number of hops", type=int, default=1)
+parser.add_argument("--nhead", help="number of attention heads", type=int, default=1)
 parser.add_argument(
     "--branch",
     help="choosing branch",
@@ -159,6 +160,8 @@ def main(args):
     log_file.write(
         "epoch,train_losses,test_losses,train_roc,test_roc,train_time,test_time\n"
     )
+    
+    best_roc = 0
 
     for epoch in range(num_epochs):
         print("EPOCH", epoch)
@@ -275,8 +278,9 @@ def main(args):
         )
         log_file.flush()
 
-        name = save_dir + "/save_" + str(epoch) + ".pt"
-        torch.save(model.state_dict(), name)
+        if test_roc > best_roc:
+            best_roc = test_roc
+            torch.save(model.state_dict(), save_dir + "/best_model.pt")
 
     log_file.close()
 

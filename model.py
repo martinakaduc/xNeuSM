@@ -3,41 +3,50 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class GLeMa(torch.nn.Module):
-    def __init__(self, n_in_feature, n_out_feature, nhop, directed=False, gpu=False):
+    def __init__(self, n_in_feature, n_out_feature, nhop, nhead=1, directed=False, gpu=False):
         super(GLeMa, self).__init__()
-        self.W = nn.Linear(n_in_feature, n_out_feature)
-        self.A = nn.Parameter(torch.zeros(size=(n_out_feature, n_out_feature)))
-        self.gate = nn.Linear(n_out_feature * 2, 1)
-        self.leakyrelu = nn.LeakyReLU(0.2)
-        self.zeros = torch.zeros(1)
-        if gpu > 0:
-            self.zeros = self.zeros.cuda()
+        self.W_h = nn.Linear(n_in_feature, n_out_feature*nhead, bias=False)
+        self.W_e = nn.Parameter(torch.zeros(size=(n_out_feature, n_out_feature)))
+        self.W_beta = nn.Linear(n_out_feature * 2, 1)
+        self.W_o = nn.Linear(n_out_feature*nhead, n_out_feature, bias=False)
 
         self.nhop = nhop
+        self.nhead= nhead
+        self.hidden_dim = n_out_feature
         self.directed = directed
 
     def forward(self, x, adj, get_attention=False):
-        h = self.W(x)
-
-        e = torch.einsum("ijl,ikl->ijk", (torch.matmul(h, self.A), h))
+        # Embedding
+        h = self.W_h(x)
+        h = h.view(h.size(0), -1, self.nhead, self.hidden_dim)
+        h = h.permute(0, 2, 1, 3)
+        
+        # Attention
+        e = torch.einsum("bijl,bikl->bijk", (torch.matmul(h, self.W_e), h))
         if not self.directed:
-            e = e + e.permute((0, 2, 1))
+            e = e + e.permute((0, 1, 3, 2))
+            
+        attention = e * (adj > 0).unsqueeze(1).repeat(1, self.nhead, 1, 1)
+        attention = F.softmax(attention, dim=-2)
+        attention = attention * adj.unsqueeze(1).repeat(1, self.nhead, 1, 1)
 
-        attention = torch.where(adj > 0, e, self.zeros)
-        attention = F.softmax(attention, dim=1)
-        attention = attention * adj
-
+        # Multi-hop attention
         z = h
-        az = F.relu(torch.einsum("aij,ajk->aik", (attention, z)))
-        coeff = torch.sigmoid(self.gate(torch.cat([h, az], -1))).repeat(
-            1, 1, h.size(-1)
-        )
+        beta = None
         for _ in range(self.nhop):
-            az = F.relu(torch.einsum("aij,ajk->aik", (attention, z)))
-            z = coeff * h + (1 - coeff) * az
+            az = torch.einsum("baij,bajk->baik", (attention, z))
+            if beta is None:
+                beta = torch.sigmoid(self.W_beta(torch.cat([h, az], -1))).repeat(
+                    1, 1, 1, self.hidden_dim
+                )
+            z = beta * h + (1 - beta) * az
+        
+        # Output
+        z = z.permute(0, 2, 1, 3).reshape(z.size(0), -1, self.hidden_dim * self.nhead)
+        z = self.W_o(F.relu(z))
 
         if get_attention:
-            return z, attention
+            return z, attention.mean(1)
         return z
 
 
@@ -73,9 +82,10 @@ class GLeMaNet(torch.nn.Module):
         self.gconv1 = nn.ModuleList(
             [
                 GLeMa(
-                    self.layers1[i],
-                    self.layers1[i + 1],
-                    cal_nhop(i),
+                    n_in_feature=self.layers1[i],
+                    n_out_feature=self.layers1[i + 1],
+                    nhop=cal_nhop(i),
+                    nhead=args.nhead,
                     directed=args.directed,
                     gpu=(args.ngpu > 0),
                 )
@@ -99,11 +109,7 @@ class GLeMaNet(torch.nn.Module):
         )
 
         self.embede = nn.Linear(2 * args.embedding_dim, d_graph_layer, bias=False)
-        self.theta = torch.tensor(args.al_scale)
-        self.zeros = torch.zeros(1)
-        if args.ngpu > 0:
-            self.theta = self.theta.cuda()
-            self.zeros = self.zeros.cuda()
+        self.theta = args.al_scale
 
     def embede_graph(self, X):
         c_hs, c_adjs1, c_adjs2, c_valid = X
@@ -167,11 +173,11 @@ class GLeMaNet(torch.nn.Module):
         mapping, samelb = attn_masking
 
         top = torch.exp(-(attention * mapping))
-        top = torch.where(mapping == 1.0, top, self.zeros)
+        top = top * (mapping == 1.0)
         top = top.sum((1, 2))
 
         topabot = torch.exp(-(attention * samelb))
-        topabot = torch.where(samelb == 1.0, topabot, self.zeros)
+        topabot = topabot * (samelb == 1.0)
         topabot = topabot.sum((1, 2))
 
         return (top / (topabot - top + 1)).sum(0) * self.theta / attention.shape[0]
