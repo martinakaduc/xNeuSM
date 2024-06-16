@@ -6,7 +6,15 @@ import torch
 import torch.nn as nn
 from matplotlib import pyplot as plt
 
-
+def set_seed(seed):
+    random.seed(seed)
+    # torch.backends.cudnn.deterministic=True
+    # torch.backends.cudnn.benchmark = False
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.cuda.manual_seed_all(seed)
+    
 def plotGraph(
     graph: nx.Graph,
     nodeLabels=None,

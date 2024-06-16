@@ -12,8 +12,10 @@ from gnn import gnn
 from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from utils import set_seed
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--seed", help="seed", type=int, default=42)
 parser.add_argument("--lr", help="learning rate", type=float, default=0.0001)
 parser.add_argument("--epoch", help="epoch", type=int, default=30)
 parser.add_argument("--ngpu", help="number of gpu", type=int, default=1)
@@ -294,4 +296,5 @@ if __name__ == "__main__":
     )
     print(s)
 
+    set_seed(args.seed)
     main(args)
