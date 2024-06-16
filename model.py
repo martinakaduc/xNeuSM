@@ -41,7 +41,7 @@ class GLeMa(torch.nn.Module):
         
         # Output
         z = z.reshape(z.size(0), -1, self.nhead * self.hidden_dim)
-        z = self.W_o(F.relu(z))
+        z = self.W_o(z)
 
         if get_attention:
             return z, attention.mean(2)
