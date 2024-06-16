@@ -8,7 +8,7 @@ class GLeMa(torch.nn.Module):
         self.W_h = nn.Linear(n_in_feature, n_out_feature*nhead)
         self.W_e = nn.Parameter(torch.zeros(size=(n_out_feature, n_out_feature)))
         self.W_beta = nn.Linear(n_out_feature * 2, 1)
-        self.W_o = nn.Linear(n_out_feature*nhead, n_out_feature, bias=False)
+        # self.W_o = nn.Linear(n_out_feature*nhead, n_out_feature, bias=False)
 
         self.nhop = nhop
         self.nhead= nhead
@@ -31,17 +31,16 @@ class GLeMa(torch.nn.Module):
 
         # Multi-hop attention
         z = h
-        beta = None
+        az = F.relu(torch.einsum("biaj,bjak->biak", (attention, z)))
+        beta = torch.sigmoid(self.W_beta(torch.cat([h, az], -1))).repeat(
+            1, 1, 1, self.hidden_dim
+        )
         for _ in range(self.nhop):
             az = F.relu(torch.einsum("biaj,bjak->biak", (attention, z)))
-            if beta is None:
-                beta = torch.sigmoid(self.W_beta(torch.cat([h, az], -1))).repeat(
-                    1, 1, 1, self.hidden_dim
-                )
             z = beta * h + (1 - beta) * az
         
         # Output
-        z = z.reshape(z.size(0), -1, self.hidden_dim * self.nhead)
+        z = z.reshape(z.size(0), -1, self.nhead * self.hidden_dim)
         # z = self.W_o(F.relu(z))
 
         if get_attention:
