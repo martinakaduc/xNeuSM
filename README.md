@@ -32,7 +32,8 @@ python process_data.py [DATASET_NAME] real
 Here is the command to run the experiments:
 
 ```
-python train.py [-h] [--lr LR] 
+python train.py [--seed SEED] 
+                [--lr LR] 
                 [--epoch EPOCH] 
                 [--ngpu NGPU] 
                 [--dataset DATASET] 
@@ -55,7 +56,7 @@ python train.py [-h] [--lr LR]
                 [--test_keys TEST_KEYS]
 
 optional arguments:
-  -h, --help            show this help message and exit
+  --seed SEED           random seed
   --lr LR               learning rate
   --epoch EPOCH         epoch
   --ngpu NGPU           number of gpu
