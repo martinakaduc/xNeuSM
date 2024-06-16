@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import utils
 from dataset import BaseDataset, collate_fn, UnderSampler
-from gnn import gnn
+from model import GLeMaNet
 from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -113,7 +113,7 @@ def main(args):
     print(f"Number of test data: {len(test_keys)}")
 
     # Initialize model
-    model = gnn(args)
+    model = GLeMaNet(args)
     print(
         "Number of parameters: ",
         sum(p.numel() for p in model.parameters() if p.requires_grad),

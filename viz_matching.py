@@ -7,13 +7,13 @@ import numpy as np
 import torch
 import utils
 from dataset import onehot_encoding_node
-from gnn import gnn
+from model import GLeMaNet
 from scipy.spatial import distance_matrix
 
 
 class InferenceGNN:
     def __init__(self, args) -> None:
-        self.model = gnn(args)
+        self.model = GLeMaNet(args)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = utils.initialize_model(
             self.model, self.device, load_save_file=args.ckpt, gpu=(args.ngpu > 0)
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ckpt",
         "-c",
-        help="checkpoint for gnn",
+        help="checkpoint for GLeMaNet",
         type=str,
         default="",
     )

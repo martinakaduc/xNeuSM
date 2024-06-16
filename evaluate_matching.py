@@ -10,7 +10,7 @@ import numpy as np
 import torch
 import utils
 from dataset import BaseDataset, collate_fn
-from gnn import gnn
+from model import GLeMaNet
 from scipy.spatial import distance_matrix
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -49,7 +49,7 @@ def evaluate(args):
 
     print(f"Number of test data: {len(test_keys)}")
 
-    model = gnn(args)
+    model = GLeMaNet(args)
     print(
         "Number of parameters: ",
         sum(p.numel() for p in model.parameters() if p.requires_grad),
@@ -175,7 +175,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ckpt",
         "-c",
-        help="checkpoint for gnn",
+        help="checkpoint for GLeMaNet",
         type=str,
         default="model/best_large_30_20.pt",
     )

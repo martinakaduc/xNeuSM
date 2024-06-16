@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import utils
 from dataset import BaseDataset, collate_fn
-from gnn import gnn
+from model import GLeMaNet
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
@@ -106,7 +106,7 @@ def main(args):
     print(f"Number of test data: {len(test_keys)}")
 
     # Initialize model
-    model = gnn(args)
+    model = GLeMaNet(args)
     print(
         "Number of parameters: ",
         sum(p.numel() for p in model.parameters() if p.requires_grad),
