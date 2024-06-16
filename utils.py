@@ -118,7 +118,8 @@ def ensure_dir(dir, args):
     if args.tatic == "static":
         dir += f"{args.nhop}"
 
-    dir += f"_nhead{args.nhead}"
+    if args.nhead > 1:
+        dir += f"_nhead{args.nhead}"
 
     if args.branch != "both":
         dir += "_" + args.branch
