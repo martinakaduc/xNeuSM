@@ -162,6 +162,7 @@ def main(args):
     )
     
     best_roc = 0
+    early_stop_count = 0
 
     for epoch in range(num_epochs):
         print("EPOCH", epoch)
@@ -279,8 +280,14 @@ def main(args):
         log_file.flush()
 
         if test_roc > best_roc:
+            early_stop_count = 0
             best_roc = test_roc
             torch.save(model.state_dict(), save_dir + "/best_model.pt")
+        else:
+            early_stop_count += 1
+            if early_stop_count >= 3:
+                # Early stopping
+                break
 
     log_file.close()
 
