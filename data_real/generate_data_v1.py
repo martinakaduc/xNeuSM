@@ -19,6 +19,7 @@ def time_limit(seconds):
     try:
         yield
     finally:
+        signal.alarm(0)
         
 def parse_args():
     parser = argparse.ArgumentParser(description="Synthetic graphs")
