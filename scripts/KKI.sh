@@ -141,7 +141,7 @@ python train.py --dataset KKI --batch_size 64 --tatic cont --embedding_dim 90
 python evaluate.py --dataset KKI --batch_size 64 --tatic cont --embedding_dim 90 --ckpt save/KKI_cont_1/best_model.pt
 python evaluate_matching.py --dataset KKI --batch_size 64 --tatic cont --embedding_dim 90 --ckpt save/KKI_cont_1/best_model.pt
 
-python train.py --dataset KKI --batch_size 64 --tatic static —nhop 1 --embedding_dim 90
+python train.py --dataset KKI --batch_size 64 --tatic static --embedding_dim 90
 python evaluate.py --dataset KKI --batch_size 64 --tatic static --embedding_dim 90 --ckpt save/KKI_static_1/best_model.pt
 python evaluate_matching.py --dataset KKI --batch_size 64 --tatic static --embedding_dim 90 --ckpt save/KKI_static_1/best_model.pt
 
