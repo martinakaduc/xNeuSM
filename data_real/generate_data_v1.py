@@ -1,15 +1,25 @@
 import argparse
 import json
 import os
+import signal
 from multiprocessing import Process
 from random import choice, seed, shuffle
-
+from contextlib import contextmanager
 import networkx as nx
 import numpy as np
 
 from tqdm import tqdm
 
-
+@contextmanager
+def time_limit(seconds):
+    def signal_handler(signum, frame):
+        raise Exception("Timed out!")
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        
 def parse_args():
     parser = argparse.ArgumentParser(description="Synthetic graphs")
     parser.add_argument(
@@ -352,21 +362,30 @@ def generate_noniso_subgraph(
     )
 
     retry = 0
-    while graph_matcher.subgraph_is_isomorphic():
-        subgraph, graph_nodes = random_modify(
-            subgraph,
-            number_label_node,
-            number_label_edge,
-            graph_nodes,
-            min_edges,
-            max_edges,
-        )
-        graph_matcher = nx.algorithms.isomorphism.GraphMatcher(
-            graph, subgraph, node_match=node_match, edge_match=edge_match
-        )
-        retry += 1
-        if retry > 10:
-            return None
+    while True:
+        try:
+            with time_limit(10):
+                subgraph_is_isomorphic = graph_matcher.subgraph_is_isomorphic()
+        except:
+            subgraph_is_isomorphic = False
+            
+        if subgraph_is_isomorphic:
+            subgraph, graph_nodes = random_modify(
+                subgraph,
+                number_label_node,
+                number_label_edge,
+                graph_nodes,
+                min_edges,
+                max_edges,
+            )
+            graph_matcher = nx.algorithms.isomorphism.GraphMatcher(
+                graph, subgraph, node_match=node_match, edge_match=edge_match
+            )
+            retry += 1
+            if retry > 2:
+                return None
+        else:
+            break
 
     return subgraph
 
@@ -376,20 +395,20 @@ def generate_subgraphs(graph, number_subgraph_per_source, *args, **kwargs):
     list_noniso_subgraphs = []
 
     for _ in tqdm(range(number_subgraph_per_source)):
-        prob = np.random.randint(0, 2)
+        generated_subgraph = None
+        while generated_subgraph is None:
+            no_of_nodes = np.random.randint(2, graph.number_of_nodes() + 1)
+            prob = np.random.randint(0, 2)
+            if prob == 1:
+                generated_subgraph = generate_iso_subgraph(graph, no_of_nodes, *args, **kwargs)
+            else:
+                generated_subgraph = generate_noniso_subgraph(graph, no_of_nodes, *args, **kwargs)
+        
         if prob == 1:
-            no_of_nodes = np.random.randint(2, graph.number_of_nodes() + 1)
-            list_iso_subgraphs.append(
-                generate_iso_subgraph(graph, no_of_nodes, *args, **kwargs)
-            )
+            list_iso_subgraphs.append(generated_subgraph)
         else:
-            no_of_nodes = np.random.randint(2, graph.number_of_nodes() + 1)
-            non_iso_subgraph = generate_noniso_subgraph(graph, no_of_nodes, *args, **kwargs)
-            while non_iso_subgraph is None:
-                no_of_nodes = np.random.randint(2, graph.number_of_nodes() + 1)
-                non_iso_subgraph = generate_noniso_subgraph(graph, no_of_nodes, *args, **kwargs)
-            list_noniso_subgraphs.append(non_iso_subgraph)
-
+            list_noniso_subgraphs.append(generated_subgraph)
+            
     return list_iso_subgraphs, list_noniso_subgraphs
 
 
