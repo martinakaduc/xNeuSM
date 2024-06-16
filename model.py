@@ -5,7 +5,7 @@ import torch.nn.functional as F
 class GLeMa(torch.nn.Module):
     def __init__(self, n_in_feature, n_out_feature, nhop, nhead=1, directed=False, gpu=False):
         super(GLeMa, self).__init__()
-        self.W_h = nn.Linear(n_in_feature, n_out_feature*nhead)
+        self.W_h = nn.Linear(n_in_feature, n_out_feature*nhead, bias=False)
         self.W_e = nn.Parameter(torch.zeros(size=(n_out_feature, n_out_feature)))
         self.W_beta = nn.Linear(n_out_feature * 2, 1)
         self.W_o = nn.Linear(n_out_feature*nhead, n_out_feature, bias=False)
@@ -17,7 +17,7 @@ class GLeMa(torch.nn.Module):
 
     def forward(self, x, adj, get_attention=False):
         # Embedding
-        h = self.W_h(x)
+        h = F.relu(self.W_h(x))
         h = h.view(h.size(0), -1, self.nhead, self.hidden_dim)
         h = h.permute(0, 2, 1, 3)
         
@@ -34,7 +34,7 @@ class GLeMa(torch.nn.Module):
         z = h
         beta = None
         for _ in range(self.nhop):
-            az = torch.einsum("baij,bajk->baik", (attention, z))
+            az = F.relu(torch.einsum("baij,bajk->baik", (attention, z)))
             if beta is None:
                 beta = torch.sigmoid(self.W_beta(torch.cat([h, az], -1))).repeat(
                     1, 1, 1, self.hidden_dim
