@@ -41,8 +41,10 @@ def main(args):
     model = utils.initialize_model(model, device, load_save_file=args.ckpt)
 
     # Train and test dataset
-    train_dataset = BaseDataset(train_keys, data_path, embedding_dim=args.embedding_dim)
-    test_dataset = BaseDataset(test_keys, data_path, embedding_dim=args.embedding_dim)
+    train_dataset = BaseDataset(
+        train_keys, data_path, embedding_dim=args.embedding_dim)
+    test_dataset = BaseDataset(
+        test_keys, data_path, embedding_dim=args.embedding_dim)
 
     # num_train_iso = len([0 for k in train_keys if 'iso' in k])
     # num_train_non = len([0 for k in train_keys if 'non' in k])
@@ -144,9 +146,10 @@ def main(args):
             )
 
             # Test neural network
-            pred, attn_loss = model(
-                X=(H, A1, A2, V), attn_masking=(M, S), training=True
-            )
+            with torch.no_grad():
+                pred, attn_loss = model(
+                    X=(H, A1, A2, V), attn_masking=(M, S), training=True
+                )
 
             loss = loss_fn(pred, Y) + attn_loss
 

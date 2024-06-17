@@ -79,7 +79,6 @@ def evaluate(args):
     st_eval = time.time()
 
     for sample in tqdm(test_dataloader):
-        model.zero_grad()
         H, A1, A2, M, S, Y, V, _ = sample
         H, A1, A2, M, S, Y, V = (
             H.to(device),
@@ -92,7 +91,8 @@ def evaluate(args):
         )
 
         # Test neural network
-        pred = model.get_refined_adjs2((H, A1, A2, V))
+        with torch.no_grad():
+            pred = model.get_refined_adjs2((H, A1, A2, V))
 
         # Collect true label and predicted label
         test_true_mapping = M.data.cpu().numpy()
