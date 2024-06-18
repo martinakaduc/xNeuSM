@@ -223,7 +223,7 @@ elif args.real:
     )
 
     test_keys = load_dataset(
-        data_dir, list_source, data_proccessed_dir, additional_tag="test"
+        data_dir, list_source, data_proccessed_dir, additional_tag="test", max_subgraph=args.max_subgraph
     )
 
     if args.testonly:
@@ -243,6 +243,7 @@ elif args.real:
             list_source_train,
             data_proccessed_dir,
             additional_tag="train",
+            max_subgraph=args.max_subgraph
         )
 
 # Notice that key which has "iso" is isomorphism, otherwise non-isomorphism
