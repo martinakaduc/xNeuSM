@@ -13,6 +13,7 @@ parser.add_argument("--data_name", type=str)
 parser.add_argument("--real", action="store_true")
 parser.add_argument("--testonly", action="store_true")
 parser.add_argument("--directed", action="store_true")
+parser.add_argument("--max_subgraph", type=int, default=-1)
 
 args = parser.parse_args()
 
@@ -66,7 +67,8 @@ def read_graphs(database_file_name):
         if tgraph is not None:
             graphs[graph_cnt] = tgraph
             sizes[graph_cnt] = tgraph.number_of_nodes()
-            degrees[graph_cnt] = sum(dict(tgraph.degree).values()) / sizes[graph_cnt]
+            degrees[graph_cnt] = sum(
+                dict(tgraph.degree).values()) / sizes[graph_cnt]
 
     return graphs, sizes, degrees
 
@@ -97,7 +99,7 @@ def read_mapping(filename):
     return mapping
 
 
-def load_graph_data(data_dir, source_id):
+def load_graph_data(data_dir, source_id, max_subgraph=-1):
     source_graph = read_graphs("%s/%s/source.lg" % (data_dir, source_id))[0][
         int(source_id)
     ]
@@ -113,6 +115,33 @@ def load_graph_data(data_dir, source_id):
     noniso_subgraphs_mapping = read_mapping(
         "%s/%s/noniso_subgraphs_mapping.lg" % (data_dir, source_id)
     )
+    if max_subgraph > 0:
+        iso_subgraphs = {
+            key: iso_subgraphs[key]
+            for key in iso_subgraphs
+            if iso_sizes[key] <= max_subgraph
+        }
+        noniso_subgraphs = {
+            key: noniso_subgraphs[key]
+            for key in noniso_subgraphs
+            if noniso_sizes[key] <= max_subgraph
+        }
+        iso_sizes = {
+            key: iso_sizes[key]
+            for key in iso_sizes if iso_sizes[key] <= max_subgraph
+        }
+        noniso_sizes = {
+            key: noniso_sizes[key]
+            for key in noniso_sizes if noniso_sizes[key] <= max_subgraph
+        }
+        iso_degrees = {
+            key: iso_degrees[key]
+            for key in iso_degrees if iso_sizes[key] <= max_subgraph
+        }
+        noniso_degrees = {
+            key: noniso_degrees[key]
+            for key in noniso_degrees if noniso_sizes[key] <= max_subgraph
+        }
     return (
         source_graph,
         iso_subgraphs,
@@ -130,7 +159,7 @@ def load_graph_data(data_dir, source_id):
 
 
 # Load and save
-def load_dataset(data_dir, list_source, save_dir, additional_tag=""):
+def load_dataset(data_dir, list_source, save_dir, additional_tag="", max_subgraph=-1):
     size_dict = {}
     degree_dict = {}
 
@@ -145,7 +174,7 @@ def load_dataset(data_dir, list_source, save_dir, additional_tag=""):
             noniso_sizes,
             iso_degrees,
             noniso_degrees,
-        ) = load_graph_data(data_dir, source_id)
+        ) = load_graph_data(data_dir, source_id, max_subgraph=max_subgraph)
 
         for key, data in iso_subgraphs.items():
             fname = "%s_%d_iso_%s" % (source_id, key, additional_tag)
@@ -163,7 +192,8 @@ def load_dataset(data_dir, list_source, save_dir, additional_tag=""):
 
     if additional_tag != "" and additional_tag == "test":
         pickle.dump(size_dict, open(f"{save_dir}/subgraphs_size.pkl", "wb"))
-        pickle.dump(degree_dict, open(f"{save_dir}/subgraphs_degree.pkl", "wb"))
+        pickle.dump(degree_dict, open(
+            f"{save_dir}/subgraphs_degree.pkl", "wb"))
 
     return list(size_dict.keys())
 
@@ -187,7 +217,7 @@ if not args.real:
     )
 
     valid_keys = load_dataset(
-        data_dir, list_source, data_proccessed_dir, additional_tag=additional_tag
+        data_dir, list_source, data_proccessed_dir, additional_tag=additional_tag, max_subgraph=args.max_subgraph
     )
 
     if additional_tag == "test":
@@ -247,8 +277,10 @@ with open("%s/test_keys.pkl" % data_proccessed_dir, "wb") as f:
     pickle.dump(test_keys, f)
 
 if args.real or (not args.real and args.testonly):
-    size_dict = pickle.load(open(f"{data_proccessed_dir}/subgraphs_size.pkl", "rb"))
-    degree_dict = pickle.load(open(f"{data_proccessed_dir}/subgraphs_degree.pkl", "rb"))
+    size_dict = pickle.load(
+        open(f"{data_proccessed_dir}/subgraphs_size.pkl", "rb"))
+    degree_dict = pickle.load(
+        open(f"{data_proccessed_dir}/subgraphs_degree.pkl", "rb"))
 
     nondense_0_20 = list(
         filter(lambda x: size_dict[x] <= 20 and degree_dict[x] <= 3, test_keys)
