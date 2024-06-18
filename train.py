@@ -130,6 +130,7 @@ def main(args):
             train_true.append(Y.data.cpu().numpy())
             train_pred.append(pred.data.cpu().numpy())
 
+        pbar.close()
         model.eval()
         st_eval = time.time()
 
