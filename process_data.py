@@ -25,7 +25,7 @@ if not os.path.exists("data_processed"):
 # %%
 
 
-def read_graphs(database_file_name):
+def read_graphs(database_file_name, max_subgraph=-1):
     graphs = dict()
     sizes = {}
     degrees = {}
@@ -53,6 +53,10 @@ def read_graphs(database_file_name):
                     tgraph = nx.Graph()
                 graph_cnt = int(cols[2])
 
+                if max_subgraph > 0 and graph_cnt >= max_subgraph:
+                    tgraph = None
+                    break
+
             elif cols[0] == "v":
                 tgraph.add_node(int(cols[1]), label=int(cols[2]))
 
@@ -73,7 +77,7 @@ def read_graphs(database_file_name):
     return graphs, sizes, degrees
 
 
-def read_mapping(filename):
+def read_mapping(filename, max_subgraph=-1):
     mapping = {}
     with open(filename, "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f.readlines()]
@@ -89,6 +93,9 @@ def read_mapping(filename):
 
                 tmapping = []
                 graph_cnt = int(cols[2])
+                if max_subgraph > 0 and graph_cnt >= max_subgraph:
+                    tmapping = None
+                    break
 
             elif cols[0] == "v":
                 tmapping.append((int(cols[1]), int(cols[2])))
@@ -104,44 +111,17 @@ def load_graph_data(data_dir, source_id, max_subgraph=-1):
         int(source_id)
     ]
     iso_subgraphs, iso_sizes, iso_degrees = read_graphs(
-        "%s/%s/iso_subgraphs.lg" % (data_dir, source_id)
+        "%s/%s/iso_subgraphs.lg" % (data_dir, source_id), max_subgraph=max_subgraph
     )
     noniso_subgraphs, noniso_sizes, noniso_degrees = read_graphs(
-        "%s/%s/noniso_subgraphs.lg" % (data_dir, source_id)
+        "%s/%s/noniso_subgraphs.lg" % (data_dir, source_id), max_subgraph=max_subgraph
     )
     iso_subgraphs_mapping = read_mapping(
-        "%s/%s/iso_subgraphs_mapping.lg" % (data_dir, source_id)
+        "%s/%s/iso_subgraphs_mapping.lg" % (data_dir, source_id), max_subgraph=max_subgraph
     )
     noniso_subgraphs_mapping = read_mapping(
-        "%s/%s/noniso_subgraphs_mapping.lg" % (data_dir, source_id)
+        "%s/%s/noniso_subgraphs_mapping.lg" % (data_dir, source_id), max_subgraph=max_subgraph
     )
-    if max_subgraph > 0:
-        iso_subgraphs = {
-            key: iso_subgraphs[key]
-            for key in iso_subgraphs
-            if iso_sizes[key] <= max_subgraph
-        }
-        noniso_subgraphs = {
-            key: noniso_subgraphs[key]
-            for key in noniso_subgraphs
-            if noniso_sizes[key] <= max_subgraph
-        }
-        iso_sizes = {
-            key: iso_sizes[key]
-            for key in iso_sizes if iso_sizes[key] <= max_subgraph
-        }
-        noniso_sizes = {
-            key: noniso_sizes[key]
-            for key in noniso_sizes if noniso_sizes[key] <= max_subgraph
-        }
-        iso_degrees = {
-            key: iso_degrees[key]
-            for key in iso_degrees if iso_sizes[key] <= max_subgraph
-        }
-        noniso_degrees = {
-            key: noniso_degrees[key]
-            for key in noniso_degrees if noniso_sizes[key] <= max_subgraph
-        }
     return (
         source_graph,
         iso_subgraphs,
