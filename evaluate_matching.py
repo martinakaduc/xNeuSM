@@ -39,10 +39,10 @@ def eval_mapping(groundtruth, predict_list, predict_prob):
 
 def evaluate(args):
     data_path = os.path.join(args.data_path, args.dataset)
-    args.train_keys = os.path.join(data_path, args.train_keys)
-    args.test_keys = os.path.join(data_path, args.test_keys)
     result_dir = utils.ensure_dir(args.result_dir, args)
     result_file = f"result_matching_{args.test_keys[9:-4]}.csv"
+    args.train_keys = os.path.join(data_path, args.train_keys)
+    args.test_keys = os.path.join(data_path, args.test_keys)
 
     with open(args.test_keys, "rb") as fp:
         test_keys = pickle.load(fp)
