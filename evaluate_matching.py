@@ -60,7 +60,7 @@ def evaluate(args):
     model = utils.initialize_model(model, device, load_save_file=args.ckpt)
 
     test_dataset = BaseDataset(
-        test_keys, args.data_path, embedding_dim=args.embedding_dim
+        test_keys, data_path, embedding_dim=args.embedding_dim
     )
     test_dataloader = DataLoader(
         test_dataset,
