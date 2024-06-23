@@ -39,10 +39,10 @@ def eval_mapping(groundtruth, predict_list, predict_prob):
 
 def evaluate(args):
     data_path = os.path.join(args.data_path, args.dataset)
+    result_dir = utils.ensure_dir(args.result_dir, args)
+    result_file = f"result_matching{args.test_keys[9:-4]}.csv"
     args.train_keys = os.path.join(data_path, args.train_keys)
     args.test_keys = os.path.join(data_path, args.test_keys)
-    result_dir = utils.ensure_dir(args.result_dir, args)
-    result_file = f"result_matching_{args.test_keys[9:-4]}.csv"
 
     with open(args.test_keys, "rb") as fp:
         test_keys = pickle.load(fp)
@@ -60,7 +60,7 @@ def evaluate(args):
     model = utils.initialize_model(model, device, load_save_file=args.ckpt)
 
     test_dataset = BaseDataset(
-        test_keys, args.data_path, embedding_dim=args.embedding_dim
+        test_keys, data_path, embedding_dim=args.embedding_dim
     )
     test_dataloader = DataLoader(
         test_dataset,
