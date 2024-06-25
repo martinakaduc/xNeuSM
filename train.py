@@ -16,6 +16,8 @@ from utils import set_seed, parse_args, ensure_dir
 
 def main(args):
     data_path = os.path.join(args.data_path, args.dataset)
+    if args.directed:
+        data_path += "_directed"
     args.train_keys = os.path.join(data_path, args.train_keys)
     args.test_keys = os.path.join(data_path, args.test_keys)
     save_dir = ensure_dir(args.save_dir, args)

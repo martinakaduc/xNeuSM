@@ -18,6 +18,8 @@ parser.add_argument("--max_subgraph", type=int, default=-1)
 args = parser.parse_args()
 
 data_proccessed_dir = "data_processed/%s" % args.data_name
+if args.directed:
+    data_proccessed_dir += "_directed"
 
 if not os.path.exists("data_processed"):
     os.mkdir("data_processed")

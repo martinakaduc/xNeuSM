@@ -22,6 +22,8 @@ from tqdm import tqdm
 def main(args):
     # hyper parameters
     data_path = os.path.join(args.data_path, args.dataset)
+    if args.directed:
+        data_path += "_directed"
     result_dir = utils.ensure_dir(args.result_dir, args)
     result_file = f"result{args.test_keys[9:-4]}.csv"
     args.train_keys = os.path.join(data_path, args.train_keys)

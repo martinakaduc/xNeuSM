@@ -18,3 +18,10 @@ python process_data.py --data_name KKI --real
 python process_data.py --data_name DHFR --real
 python process_data.py --data_name DBLP-v1 --real
 python process_data.py --data_name MSRC-21 --real
+
+python process_data.py --data_name COX2 --real --directed
+python process_data.py --data_name COX2_MD --real --directed
+python process_data.py --data_name KKI --real --directed
+python process_data.py --data_name DHFR --real --directed
+python process_data.py --data_name DBLP-v1 --real --directed
+python process_data.py --data_name MSRC-21 --real --directed
