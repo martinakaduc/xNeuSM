@@ -14,70 +14,59 @@ python train.py \
 # End2end evaluation
 python evaluate.py \
     --dataset COX2 \
-    --embedding_dim 7--batch_size 256 \
-    --embedding_dim 7--tatic jump \
-    --embedding_dim 7--embedding_dim 7 \
-    --embedding_dim 7--ckpt save/COX2_jump/best_model.pt
+    --batch_size 256 \
+    --tatic jump \
+    --embedding_dim 7 \
+    --ckpt save/COX2_jump/best_model.pt
 
 # Directed evaluation
 python evaluate.py \
     --dataset COX2 \
-    --embedding_dim 7--batch_size 256 \
-    --embedding_dim 7--tatic jump \
-    --embedding_dim 7--embedding_dim 7 \
-    --embedding_dim 7--directed \
-    --embedding_dim 7--ckpt save/COX2_jump_directed/best_model.pt
+    --batch_size 256 \
+    --tatic jump \
+    --embedding_dim 7 \
+    --directed \
+    --ckpt save/COX2_jump_directed/best_model.pt
 
 # Scalability evaluation
 python evaluate.py \
     --dataset COX2 \
-    --embedding_dim 7--batch_size 128 \
-    --embedding_dim 7--tatic jump \
-    --embedding_dim 7--embedding_dim 7 \
-    --embedding_dim 7--ckpt save/COX2_jump/best_model.pt \
-    --embedding_dim 7--test_keys test_keys_nondense_0_20.pkl
+    --batch_size 128 \
+    --tatic jump \
+    --embedding_dim 7 \
+    --ckpt save/COX2_jump/best_model.pt \
+    --test_keys test_keys_nondense_0_20.pkl
 
 python evaluate.py \
     --dataset COX2 \
-    --embedding_dim 7--batch_size 128 \
-    --embedding_dim 7--tatic jump \
-    --embedding_dim 7--embedding_dim 7 \
-    --embedding_dim 7--ckpt save/COX2_jump/best_model.pt \
-    --embedding_dim 7--test_keys test_keys_nondense_20_40.pkl
+    --batch_size 128 \
+    --tatic jump \
+    --embedding_dim 7 \
+    --ckpt save/COX2_jump/best_model.pt \
+    --test_keys test_keys_nondense_20_40.pkl
 
 python evaluate.py \
     --dataset COX2 \
-    --embedding_dim 7--batch_size 128 \
-    --embedding_dim 7--tatic jump \
-    --embedding_dim 7--embedding_dim 7 \
-    --embedding_dim 7--ckpt save/COX2_jump/best_model.pt \
-    --embedding_dim 7--test_keys test_keys_nondense_40_60.pkl
+    --batch_size 128 \
+    --tatic jump \
+    --embedding_dim 7 \
+    --ckpt save/COX2_jump/best_model.pt \
+    --test_keys test_keys_nondense_40_60.pkl
 
 # Explainability evaluation
 python evaluate_matching.py \
     --dataset COX2 \
-    --embedding_dim 7 \
     --batch_size 128 \
-    --embedding_dim 7 \
-    --embedding_dim 7 \
     --tatic jump \
-    --embedding_dim 7 \
-    --embedding_dim 7 \
     --embedding_dim 7 \
     --ckpt save/COX2_jump/best_model.pt
 
 python evaluate_matching.py \
     --dataset COX2 \
-    --embedding_dim 7 \
     --batch_size 128 \
-    --embedding_dim 7 \
-    --embedding_dim 7 \
     --tatic jump \
     --embedding_dim 7 \
-    --embedding_dim 7 \
-    --embedding_dim 7 \
     --directed \
-    --embedding_dim 7 \
     --ckpt save/COX2_jump_directed/best_model.pt
 
 # Abalation study

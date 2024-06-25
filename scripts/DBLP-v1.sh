@@ -272,7 +272,7 @@ python evaluate.py \
     --tatic jump \
     --embedding_dim 39 \
     --nhead 4 \
-    --ckpt save/CDBLP-v1_jump_nhead4/best_model.pt
+    --ckpt save/DBLP-v1_jump_nhead4/best_model.pt
 python evaluate_matching.py \
     --dataset DBLP-v1 \
     --batch_size 32 \
