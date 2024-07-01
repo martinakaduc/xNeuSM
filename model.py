@@ -112,6 +112,9 @@ class GLeMaNet(torch.nn.Module):
         self.embede = nn.Linear(2 * args.embedding_dim,
                                 d_graph_layer, bias=False)
         self.theta = args.al_scale
+        self.zeros = torch.zeros(1)
+        if args.ngpu > 0:
+            self.zeros = self.zeros.cuda()
 
     def embede_graph(self, X):
         c_hs, c_adjs1, c_adjs2, c_valid = X
@@ -176,14 +179,14 @@ class GLeMaNet(torch.nn.Module):
         mapping, samelb = attn_masking
 
         top = torch.exp(-(attention * mapping))
-        top = top * (mapping == 1.0)
+        top = torch.where(mapping == 1.0, top, self.zeros)
         top = top.sum((1, 2))
+        
+        bot = torch.exp(-(attention * (samelb - mapping)))
+        bot = torch.where((samelb - mapping) == 1.0, bot, self.zeros)
+        bot = bot.sum((1, 2))
 
-        topabot = torch.exp(-(attention * samelb))
-        topabot = topabot * (samelb == 1.0)
-        topabot = topabot.sum((1, 2))
-
-        return (top / (topabot - top + 1)).sum(0) * self.theta / attention.shape[0]
+        return (top / (bot + 1)).sum(0) * self.theta / attention.shape[0]
 
     def get_refined_adjs2(self, X):
         _, attention = self.embede_graph(X)
