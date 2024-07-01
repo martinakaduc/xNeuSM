@@ -5,19 +5,31 @@ import torch.nn.functional as F
 
 class GLeMa(torch.nn.Module):
     def __init__(
-        self, n_in_feature, n_out_feature, nhop, nhead=1, directed=False
+        self, n_in_feature, n_out_feature, nhop, nhead=1, aggregation="mean", directed=False
     ):
         super(GLeMa, self).__init__()
         self.W_h = nn.Linear(n_in_feature, n_out_feature * nhead)
         self.W_e = nn.Parameter(torch.zeros(
             size=(n_out_feature, n_out_feature)))
         self.W_beta = nn.Linear(n_out_feature * 2, 1)
-        self.W_o = nn.Linear(n_out_feature * nhead, n_out_feature, bias=False)
+
+        assert aggregation in ["mean", "weight"], "Unknown aggregation"
+        self.aggr = aggregation
+        if aggregation == "weight":
+            self.W_o = nn.Linear(n_out_feature * nhead,
+                                 n_out_feature, bias=False)
 
         self.nhop = nhop
         self.nhead = nhead
         self.hidden_dim = n_out_feature
         self.directed = directed
+
+    def __aggreate(self, z):
+        if self.aggr == "mean":
+            return z.mean(-2)  # mean over heads
+        else:
+            z = z.reshape(z.size(0), -1, self.nhead * self.hidden_dim)
+            return self.W_o(z)
 
     def forward(self, x, adj, get_attention=False):
         # Embedding
@@ -44,8 +56,7 @@ class GLeMa(torch.nn.Module):
             z = beta * h + (1 - beta) * az
 
         # Output
-        z = z.reshape(z.size(0), -1, self.nhead * self.hidden_dim)
-        z = self.W_o(z)
+        z = self.__aggreate(z)
 
         if get_attention:
             return z, attention.mean(2)
@@ -181,7 +192,7 @@ class GLeMaNet(torch.nn.Module):
         top = torch.exp(-(attention * mapping))
         top = torch.where(mapping == 1.0, top, self.zeros)
         top = top.sum((1, 2))
-        
+
         bot = torch.exp(-(attention * (samelb - mapping)))
         bot = torch.where((samelb - mapping) == 1.0, bot, self.zeros)
         bot = bot.sum((1, 2))
