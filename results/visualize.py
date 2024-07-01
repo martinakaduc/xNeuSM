@@ -35,7 +35,7 @@ if __name__ == "__main__":
     ax.set_ylabel("Runtime $(s)$")
     ax.set_xlabel("")
     ax.legend(loc="upper right", bbox_to_anchor=(1.0, 1.0), ncol=2)
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.savefig(os.path.join(runtime_folder, "runtime_average.pdf"))
     ##############################################################################
     # Load each runtime results
@@ -60,7 +60,8 @@ if __name__ == "__main__":
         files.sort(key=lambda x: x.split("-")[-1], reverse=True)
         num_subplots = len(files)
         # Delete the runtime file starting with the dataset name
-        list_runtime_files = [file for file in list_runtime_files if file not in files]
+        list_runtime_files = [
+            file for file in list_runtime_files if file not in files]
 
         for file in files:
             df_name = (
@@ -78,7 +79,8 @@ if __name__ == "__main__":
                     # Check runtime is nan or not
                     if np.isnan(df[setting][i]):
                         runtime_df["settings"][-1] = (
-                            runtime_df["settings"][-1][:-4] + "|V_{\mathcal{T}}|]$"
+                            runtime_df["settings"][-1][:-4] +
+                            "|V_{\mathcal{T}}|]$"
                         )
 
                     runtime_df["settings"].append(setting_map[setting])
@@ -102,7 +104,8 @@ if __name__ == "__main__":
             ax=axes[idx // 3][idx % 3],
             marker="o",
         )
-        axes[idx // 3][idx % 3].tick_params(axis="both", which="major", labelsize=14)
+        axes[idx // 3][idx %
+                       3].tick_params(axis="both", which="major", labelsize=14)
         # axes[idx].tick_params(axis='x', rotation=10)
         axes[idx // 3][idx % 3].set_xlabel("", fontsize=14)
         axes[idx // 3][idx % 3].set_ylabel("Runtime $(s)$", fontsize=14)
@@ -120,7 +123,7 @@ if __name__ == "__main__":
         ncol=9,
         fontsize=12,
     )
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.savefig(os.path.join(runtime_folder, f"runtime_by_dataset.pdf"))
     ##############################################################################
     # Load each performance results
@@ -177,7 +180,7 @@ if __name__ == "__main__":
         ncol=2,
         fontsize=14,
     )
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.savefig(os.path.join(performance_folder, "performance_1x4.pdf"))
 
     # 2x2 plot
@@ -190,7 +193,8 @@ if __name__ == "__main__":
             hue="algo",
             ax=axes[idx // 2][idx % 2],
         )
-        axes[idx // 2][idx % 2].tick_params(axis="both", which="major", labelsize=14)
+        axes[idx // 2][idx %
+                       2].tick_params(axis="both", which="major", labelsize=14)
         axes[idx // 2][idx % 2].tick_params(axis="x")
         axes[idx // 2][idx % 2].set_ylabel(metric, fontsize=14)
         axes[idx // 2][idx % 2].set_xlabel("")
@@ -206,7 +210,7 @@ if __name__ == "__main__":
         ncol=2,
         fontsize=14,
     )
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.savefig(os.path.join(performance_folder, "performance_2x2.pdf"))
 
     ##############################################################################
@@ -254,7 +258,8 @@ if __name__ == "__main__":
             ax=axes[row_idx][col_idx],
             marker="o",
         )
-        axes[row_idx][col_idx].tick_params(axis="both", which="major", labelsize=14)
+        axes[row_idx][col_idx].tick_params(
+            axis="both", which="major", labelsize=14)
         axes[row_idx][col_idx].set_xlabel("Threshold", fontsize=14)
         axes[row_idx][col_idx].set_ylabel(metric, fontsize=14)
         axes[row_idx][col_idx].set_ylim(0.5, 1)
@@ -269,7 +274,7 @@ if __name__ == "__main__":
         ncol=6,
         fontsize=14,
     )
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.savefig(os.path.join(degradation_folder, "degradation_2x2.pdf"))
 
     # 1x4 plot
@@ -298,5 +303,5 @@ if __name__ == "__main__":
         ncol=6,
         fontsize=14,
     )
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.savefig(os.path.join(degradation_folder, "degradation_1x4.pdf"))
