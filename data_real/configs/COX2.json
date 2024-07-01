@@ -4,7 +4,7 @@
     "std_source_size": 4.031830489259454,
     "avg_degree": 2.1077350079995685,
     "std_degree": 0.016478814095997874,
-    "number_label_node": 7,
+    "number_label_node": 8,
     "number_label_edge": 1,
     "number_subgraph_per_source": 2000
 }
