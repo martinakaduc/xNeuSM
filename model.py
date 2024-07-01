@@ -24,7 +24,7 @@ class GLeMa(torch.nn.Module):
         self.hidden_dim = n_out_feature
         self.directed = directed
 
-    def __aggreate(self, z):
+    def __aggregate__(self, z):
         if self.aggr == "mean":
             return z.mean(-2)  # mean over heads
         else:
@@ -56,7 +56,7 @@ class GLeMa(torch.nn.Module):
             z = beta * h + (1 - beta) * az
 
         # Output
-        z = self.__aggreate(z)
+        z = self.__aggregate__(z)
 
         if get_attention:
             return z, attention.mean(2)
