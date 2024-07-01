@@ -286,41 +286,41 @@ python train.py \
     --dataset DBLP-v1 \
     --batch_size 64 \
     --tatic jump \
-    --embedding_dim 90 \
+    --embedding_dim 190 \
     --tag cross
 
 python evaluate.py \
     --dataset KKI \
     --batch_size 64 \
     --tatic jump \
-    --embedding_dim 90 \
+    --embedding_dim 190 \
     --tag DBLP-v1_cross \
     --ckpt save/DBLP-v1_jump_cross/best_model.pt
 python evaluate.py \
     --dataset DHFR \
     --batch_size 64 \
     --tatic jump \
-    --embedding_dim 90 \
+    --embedding_dim 190 \
     --tag DBLP-v1_cross \
     --ckpt save/DBLP-v1_jump_cross/best_model.pt
 python evaluate.py \
     --dataset COX2_MD \
     --batch_size 64 \
     --tatic jump \
-    --embedding_dim 90 \
+    --embedding_dim 190 \
     --tag DBLP-v1_cross \
     --ckpt save/DBLP-v1_jump_cross/best_model.pt
 python evaluate.py \
     --dataset COX2 \
     --batch_size 64 \
     --tatic jump \
-    --embedding_dim 90 \
+    --embedding_dim 190 \
     --tag DBLP-v1_cross \
     --ckpt save/DBLP-v1_jump_cross/best_model.pt
 python evaluate.py \
     --dataset MSRC-21 \
     --batch_size 64 \
     --tatic jump \
-    --embedding_dim 90 \
+    --embedding_dim 190 \
     --tag DBLP-v1_cross \
     --ckpt save/DBLP-v1_jump_cross/best_model.pt
