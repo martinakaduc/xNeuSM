@@ -120,7 +120,7 @@ if __name__ == "__main__":
         labels,
         loc="lower center",
         bbox_to_anchor=(0.5, -0.05),
-        ncol=9,
+        ncol=10,
         fontsize=12,
     )
     # fig.tight_layout()
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     performance_df = pd.DataFrame(performance_df)
 
     # 1x4 plot
-    fig, axes = plt.subplots(figsize=(5 * 4, 4), ncols=4)
+    fig, axes = plt.subplots(figsize=(8 * 4, 4), ncols=4)
     for idx, metric in enumerate(["ROC AUC", "PR AUC", "F1 score", "Accuracy"]):
         sns.barplot(
             data=performance_df, x="dataset", y=metric, hue="algo", ax=axes[idx]
@@ -168,7 +168,7 @@ if __name__ == "__main__":
         axes[idx].tick_params(axis="x", rotation=45)
         axes[idx].set_ylabel(metric, fontsize=14)
         axes[idx].set_xlabel("")
-        axes[idx].set_ylim(0.5, 1)
+        axes[idx].set_ylim(0.4, 1)
         axes[idx].get_legend().set_visible(False)
     handles, labels = axes[0].get_legend_handles_labels()
 
@@ -177,14 +177,14 @@ if __name__ == "__main__":
         labels,
         loc="lower center",
         bbox_to_anchor=(0.5, 1),
-        ncol=2,
+        ncol=3,
         fontsize=14,
     )
     # fig.tight_layout()
     fig.savefig(os.path.join(performance_folder, "performance_1x4.pdf"))
 
     # 2x2 plot
-    fig, axes = plt.subplots(figsize=(8 * 2, 4 * 2), ncols=2, nrows=2)
+    fig, axes = plt.subplots(figsize=(6 * 2, 4 * 2), ncols=2, nrows=2)
     for idx, metric in enumerate(["ROC AUC", "PR AUC", "F1 score", "Accuracy"]):
         sns.barplot(
             data=performance_df,
@@ -198,7 +198,7 @@ if __name__ == "__main__":
         axes[idx // 2][idx % 2].tick_params(axis="x")
         axes[idx // 2][idx % 2].set_ylabel(metric, fontsize=14)
         axes[idx // 2][idx % 2].set_xlabel("")
-        axes[idx // 2][idx % 2].set_ylim(0.5, 1)
+        axes[idx // 2][idx % 2].set_ylim(0.4, 1)
         axes[idx // 2][idx % 2].get_legend().set_visible(False)
     handles, labels = axes[0][0].get_legend_handles_labels()
 
@@ -207,7 +207,7 @@ if __name__ == "__main__":
         labels,
         loc="lower center",
         bbox_to_anchor=(0.5, 1),
-        ncol=2,
+        ncol=3,
         fontsize=14,
     )
     # fig.tight_layout()
@@ -246,7 +246,7 @@ if __name__ == "__main__":
     degradation_df = pd.DataFrame(degradation_df)
 
     # 2x2 plot
-    fig, axes = plt.subplots(figsize=(6 * 2, 3 * 2), ncols=2, nrows=2)
+    fig, axes = plt.subplots(figsize=(6 * 2, 3.5 * 2), ncols=2, nrows=2)
     for idx, metric in enumerate(["ROC AUC", "PR AUC", "F1 score", "Accuracy"]):
         row_idx = idx // 2
         col_idx = idx % 2
@@ -278,7 +278,7 @@ if __name__ == "__main__":
     fig.savefig(os.path.join(degradation_folder, "degradation_2x2.pdf"))
 
     # 1x4 plot
-    fig, axes = plt.subplots(figsize=(5 * 4, 3), ncols=4)
+    fig, axes = plt.subplots(figsize=(8 * 4, 4), ncols=4)
     for idx, metric in enumerate(["ROC AUC", "PR AUC", "F1 score", "Accuracy"]):
         sns.lineplot(
             data=degradation_df,
