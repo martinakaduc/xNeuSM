@@ -1,3 +1,4 @@
 algo,ROC AUC,PR AUC,F1 score,Accuracy
 NeuralMatch,0.984,0.973,0.959,0.958
+DualMP,0.773,0.692,0.818,0.775
 xNeuSM,0.986,0.974,0.986,0.986
