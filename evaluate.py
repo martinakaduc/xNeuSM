@@ -43,8 +43,7 @@ def main(args):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = utils.initialize_model(model, device, load_save_file=args.ckpt)
 
-    test_dataset = BaseDataset(
-        test_keys, data_path, embedding_dim=args.embedding_dim)
+    test_dataset = BaseDataset(test_keys, data_path, embedding_dim=args.embedding_dim)
     test_dataloader = DataLoader(
         test_dataset,
         args.batch_size,

@@ -13,8 +13,7 @@ from scipy.spatial import distance_matrix
 class InferenceGNN:
     def __init__(self, args) -> None:
         self.model = GLeMaNet(args)
-        self.device = torch.device(
-            "cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = utils.initialize_model(
             self.model, self.device, load_save_file=args.ckpt
         )
@@ -62,8 +61,7 @@ class InferenceGNN:
         return sample
 
     def input_to_tensor(self, batch_input):
-        max_natoms = max([len(item["H"])
-                         for item in batch_input if item is not None])
+        max_natoms = max([len(item["H"]) for item in batch_input if item is not None])
         batch_size = len(batch_input)
 
         H = np.zeros((batch_size, max_natoms, batch_input[0]["H"].shape[-1]))
@@ -133,8 +131,7 @@ if __name__ == "__main__":
         "--mapping_threshold", help="mapping threshold", type=float, default=1e-5
     )
     parser.add_argument("--ngpu", help="number of gpu", type=int, default=1)
-    parser.add_argument("--batch_size", help="batch_size",
-                        type=int, default=32)
+    parser.add_argument("--batch_size", help="batch_size", type=int, default=32)
     parser.add_argument(
         "--embedding_dim",
         help="node embedding dim aka number of distinct node label",
@@ -147,15 +144,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--d_graph_layer", help="dimension of GNN layer", type=int, default=140
     )
-    parser.add_argument(
-        "--n_FC_layer", help="number of FC layer", type=int, default=4)
+    parser.add_argument("--n_FC_layer", help="number of FC layer", type=int, default=4)
     parser.add_argument(
         "--d_FC_layer", help="dimension of FC layer", type=int, default=128
     )
-    parser.add_argument("--dropout_rate", help="dropout_rate",
-                        type=float, default=0.0)
-    parser.add_argument("--al_scale", help="attn_loss scale",
-                        type=float, default=1.0)
+    parser.add_argument("--dropout_rate", help="dropout_rate", type=float, default=0.0)
+    parser.add_argument("--al_scale", help="attn_loss scale", type=float, default=1.0)
     parser.add_argument(
         "--tatic",
         help="tactic of defining number of hops",
@@ -163,8 +157,7 @@ if __name__ == "__main__":
         default="static",
         choices=["static", "cont", "jump"],
     )
-    parser.add_argument("--directed", action="store_true",
-                        help="directed graph")
+    parser.add_argument("--directed", action="store_true", help="directed graph")
     parser.add_argument("--nhop", help="number of hops", type=int, default=1)
     parser.add_argument(
         "--nhead", help="number of attention heads", type=int, default=1
@@ -185,11 +178,9 @@ if __name__ == "__main__":
         type=str,
         default="results/",
     )
-    parser.add_argument("--source", help="source graph idx",
-                        type=int, default=0)
+    parser.add_argument("--source", help="source graph idx", type=int, default=0)
     parser.add_argument("--query", help="query graph idx", type=int, default=0)
-    parser.add_argument("--iso", action="store_true",
-                        help="wheather using iso/noniso")
+    parser.add_argument("--iso", action="store_true", help="wheather using iso/noniso")
 
     args = parser.parse_args()
     print(args)
@@ -269,8 +260,7 @@ if __name__ == "__main__":
 
             max_prob = max(cnode_mapping, key=lambda x: x[1])[1]
             mapping_dict[node] = list(
-                map(lambda x: x[0], filter(
-                    lambda y: y[1] == max_prob, cnode_mapping))
+                map(lambda x: x[0], filter(lambda y: y[1] == max_prob, cnode_mapping))
             )
 
         print("Mapping:", mapping_dict)

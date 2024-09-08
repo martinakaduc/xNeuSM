@@ -11,7 +11,7 @@ from model import GLeMaNet
 from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from utils import set_seed, parse_args, ensure_dir
+from utils import ensure_dir, parse_args, set_seed
 
 
 def main(args):
@@ -43,10 +43,8 @@ def main(args):
     model = utils.initialize_model(model, device, load_save_file=args.ckpt)
 
     # Train and test dataset
-    train_dataset = BaseDataset(
-        train_keys, data_path, embedding_dim=args.embedding_dim)
-    test_dataset = BaseDataset(
-        test_keys, data_path, embedding_dim=args.embedding_dim)
+    train_dataset = BaseDataset(train_keys, data_path, embedding_dim=args.embedding_dim)
+    test_dataset = BaseDataset(test_keys, data_path, embedding_dim=args.embedding_dim)
 
     # num_train_iso = len([0 for k in train_keys if 'iso' in k])
     # num_train_non = len([0 for k in train_keys if 'non' in k])

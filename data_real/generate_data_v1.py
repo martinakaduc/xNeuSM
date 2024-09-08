@@ -2,9 +2,10 @@ import argparse
 import json
 import os
 import signal
+from contextlib import contextmanager
 from multiprocessing import Process
 from random import choice, seed, shuffle
-from contextlib import contextmanager
+
 import networkx as nx
 import numpy as np
 

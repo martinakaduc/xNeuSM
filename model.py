@@ -5,19 +5,23 @@ import torch.nn.functional as F
 
 class GLeMa(torch.nn.Module):
     def __init__(
-        self, n_in_feature, n_out_feature, nhop, nhead=1, aggregation="mean", directed=False
+        self,
+        n_in_feature,
+        n_out_feature,
+        nhop,
+        nhead=1,
+        aggregation="mean",
+        directed=False,
     ):
         super(GLeMa, self).__init__()
         self.W_h = nn.Linear(n_in_feature, n_out_feature * nhead)
-        self.W_e = nn.Parameter(torch.zeros(
-            size=(n_out_feature, n_out_feature)))
+        self.W_e = nn.Parameter(torch.zeros(size=(n_out_feature, n_out_feature)))
         self.W_beta = nn.Linear(n_out_feature * 2, 1)
 
         assert aggregation in ["mean", "weight"], "Unknown aggregation"
         self.aggr = aggregation
         if aggregation == "weight":
-            self.W_o = nn.Linear(n_out_feature * nhead,
-                                 n_out_feature, bias=False)
+            self.W_o = nn.Linear(n_out_feature * nhead, n_out_feature, bias=False)
 
         self.nhop = nhop
         self.nhead = nhead
@@ -99,7 +103,7 @@ class GLeMaNet(torch.nn.Module):
                     n_out_feature=self.layers1[i + 1],
                     nhop=cal_nhop(i),
                     nhead=args.nhead,
-                    directed=args.directed
+                    directed=args.directed,
                 )
                 for i in range(len(self.layers1) - 1)
             ]
@@ -120,8 +124,7 @@ class GLeMaNet(torch.nn.Module):
             ]
         )
 
-        self.embede = nn.Linear(2 * args.embedding_dim,
-                                d_graph_layer, bias=False)
+        self.embede = nn.Linear(2 * args.embedding_dim, d_graph_layer, bias=False)
         self.theta = args.al_scale
         self.zeros = torch.zeros(1)
         if args.ngpu > 0:
@@ -163,8 +166,7 @@ class GLeMaNet(torch.nn.Module):
         for k in range(len(self.FC)):
             if k < len(self.FC) - 1:
                 c_hs = self.FC[k](c_hs)
-                c_hs = F.dropout(c_hs, p=self.dropout_rate,
-                                 training=self.training)
+                c_hs = F.dropout(c_hs, p=self.dropout_rate, training=self.training)
                 c_hs = F.relu(c_hs)
             else:
                 c_hs = self.FC[k](c_hs)

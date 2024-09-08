@@ -73,8 +73,7 @@ def read_graphs(database_file_name, max_subgraph=-1):
         if tgraph is not None:
             graphs[graph_cnt] = tgraph
             sizes[graph_cnt] = tgraph.number_of_nodes()
-            degrees[graph_cnt] = sum(
-                dict(tgraph.degree).values()) / sizes[graph_cnt]
+            degrees[graph_cnt] = sum(dict(tgraph.degree).values()) / sizes[graph_cnt]
 
     return graphs, sizes, degrees
 
@@ -119,10 +118,12 @@ def load_graph_data(data_dir, source_id, max_subgraph=-1):
         "%s/%s/noniso_subgraphs.lg" % (data_dir, source_id), max_subgraph=max_subgraph
     )
     iso_subgraphs_mapping = read_mapping(
-        "%s/%s/iso_subgraphs_mapping.lg" % (data_dir, source_id), max_subgraph=max_subgraph
+        "%s/%s/iso_subgraphs_mapping.lg" % (data_dir, source_id),
+        max_subgraph=max_subgraph,
     )
     noniso_subgraphs_mapping = read_mapping(
-        "%s/%s/noniso_subgraphs_mapping.lg" % (data_dir, source_id), max_subgraph=max_subgraph
+        "%s/%s/noniso_subgraphs_mapping.lg" % (data_dir, source_id),
+        max_subgraph=max_subgraph,
     )
     return (
         source_graph,
@@ -174,8 +175,7 @@ def load_dataset(data_dir, list_source, save_dir, additional_tag="", max_subgrap
 
     if additional_tag != "" and additional_tag == "test":
         pickle.dump(size_dict, open(f"{save_dir}/subgraphs_size.pkl", "wb"))
-        pickle.dump(degree_dict, open(
-            f"{save_dir}/subgraphs_degree.pkl", "wb"))
+        pickle.dump(degree_dict, open(f"{save_dir}/subgraphs_degree.pkl", "wb"))
 
     return list(size_dict.keys())
 
@@ -199,7 +199,11 @@ if not args.real:
     )
 
     valid_keys = load_dataset(
-        data_dir, list_source, data_proccessed_dir, additional_tag=additional_tag, max_subgraph=args.max_subgraph
+        data_dir,
+        list_source,
+        data_proccessed_dir,
+        additional_tag=additional_tag,
+        max_subgraph=args.max_subgraph,
     )
 
     if additional_tag == "test":
@@ -225,7 +229,11 @@ elif args.real:
     )
 
     test_keys = load_dataset(
-        data_dir, list_source, data_proccessed_dir, additional_tag="test", max_subgraph=args.max_subgraph
+        data_dir,
+        list_source,
+        data_proccessed_dir,
+        additional_tag="test",
+        max_subgraph=args.max_subgraph,
     )
 
     if args.testonly:
@@ -245,7 +253,7 @@ elif args.real:
             list_source_train,
             data_proccessed_dir,
             additional_tag="train",
-            max_subgraph=args.max_subgraph
+            max_subgraph=args.max_subgraph,
         )
 
 # Notice that key which has "iso" is isomorphism, otherwise non-isomorphism
@@ -260,10 +268,8 @@ with open("%s/test_keys.pkl" % data_proccessed_dir, "wb") as f:
     pickle.dump(test_keys, f)
 
 if args.real or (not args.real and args.testonly):
-    size_dict = pickle.load(
-        open(f"{data_proccessed_dir}/subgraphs_size.pkl", "rb"))
-    degree_dict = pickle.load(
-        open(f"{data_proccessed_dir}/subgraphs_degree.pkl", "rb"))
+    size_dict = pickle.load(open(f"{data_proccessed_dir}/subgraphs_size.pkl", "rb"))
+    degree_dict = pickle.load(open(f"{data_proccessed_dir}/subgraphs_degree.pkl", "rb"))
 
     nondense_0_20 = list(
         filter(lambda x: size_dict[x] <= 20 and degree_dict[x] <= 3, test_keys)
