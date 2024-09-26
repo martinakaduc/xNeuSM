@@ -103,9 +103,15 @@ bash scripts/[DATASET_NAME].sh
 If you find this repository useful in your research, please cite our paper:
 
 ```
-@misc{Nguyen2023xNeuSM,
-  author={Nguyen, Quang Duc and Nguyen, Thanh Toan and Quan, Tho},
-  title={xNeuSM: Explainable Neural Subgraph Matching with Graph Learnable Multi-hop Attention Networks}, 
-  year={2023},
+@article{Nguyen2024Explainable,
+  author={Nguyen, Duc Q. and Toan Nguyen, Thanh and Jo, Jun and Poux, Florent and Anirban, Shikha and Quan, Tho T.},
+  journal={IEEE Access}, 
+  title={{Explainable Neural Subgraph Matching With Learnable Multi-Hop Attention}}, 
+  year={2024},
+  volume={12},
+  number={},
+  pages={130474-130492},
+  keywords={Spread spectrum communication;Pattern matching;Multitasking;Adaptation models;Graph neural networks;Object recognition;Explainability;graph neural networks;learnable multi-hop attention;subgraph matching},
+  doi={10.1109/ACCESS.2024.3458050}
 }
 ```
